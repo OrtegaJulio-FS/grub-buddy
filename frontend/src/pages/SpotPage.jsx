@@ -7,6 +7,7 @@ import { PlaceholderPhoto } from '../components/spots/PlaceholderPhoto';
 import { Button } from '../components/common/Button';
 import { LogVisitModal } from '../components/logs/LogVisitModal';
 import { ReviewsList } from '../components/reviews/ReviewsList';
+import { WriteReviewModal } from '../components/reviews/WriteReviewModal';
 import { useSpot } from '../hooks/useSpot';
 import { useLoggedByMe } from '../hooks/useLoggedByMe';
 import { useReviews } from '../hooks/useReviews';
@@ -16,18 +17,25 @@ export function SpotPage() {
   const { id } = useParams();
   const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
   const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
-  const { reviews, loading: reviewsLoading } = useReviews(id);
+  const { reviews, loading: reviewsLoading, refetch: refetchReviews } = useReviews(id);
   const [modalOpen, setModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   function handleLogged() {
     refetchSpot();
     refetchLoggedByMe();
   }
 
+  function handleReviewed() {
+    refetchSpot();
+    refetchLoggedByMe();
+    refetchReviews();
+  }
+
   // Only block on the *initial* load. Background refetches (after logging a
-  // visit) also flip spotLoading briefly - returning early for those would
-  // unmount the open Log-a-Visit modal mid-confirmation, wiping out its
-  // "submitted" state before the user ever sees it.
+  // visit or posting a review) also flip spotLoading briefly - returning
+  // early for those would unmount the open modal mid-confirmation, wiping
+  // out its "submitted" state before the user ever sees it.
   if (spotLoading && !spot) {
     return (
       <>
@@ -89,7 +97,12 @@ export function SpotPage() {
         </section>
 
         <section className="container reviews-section">
-          <h2 className="reviews-section__title">Reviews</h2>
+          <div className="reviews-section__header">
+            <h2 className="reviews-section__title">Reviews</h2>
+            <Button variant="ghost" size="sm" onClick={() => setReviewModalOpen(true)}>
+              Write a review
+            </Button>
+          </div>
           {reviewsLoading ? (
             <p className="reviews-section__loading">Loading reviews...</p>
           ) : (
@@ -103,6 +116,13 @@ export function SpotPage() {
         onClose={() => setModalOpen(false)}
         spot={spot}
         onLogged={handleLogged}
+      />
+
+      <WriteReviewModal
+        open={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        spot={spot}
+        onReviewed={handleReviewed}
       />
     </>
   );

@@ -1,0 +1,28 @@
+.tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag-picker__chip {
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tag-picker__chip:hover {
+  border-color: var(--color-secondary);
+}
+
+.tag-picker__chip--active {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-butter-cream);
+}

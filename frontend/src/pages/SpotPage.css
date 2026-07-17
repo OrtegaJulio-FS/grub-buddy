@@ -96,10 +96,19 @@
   padding-bottom: var(--space-8);
 }
 
+.reviews-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
 .reviews-section__title {
   font-size: 1.6rem;
   font-style: italic;
-  margin-bottom: var(--space-4);
+  margin: 0;
 }
 
 .reviews-section__loading {
