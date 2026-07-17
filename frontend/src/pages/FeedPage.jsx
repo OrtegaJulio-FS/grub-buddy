@@ -5,21 +5,33 @@ import { FilterPills } from '../components/layout/FilterPills';
 import { SpotGrid } from '../components/spots/SpotGrid';
 import { useSpots } from '../hooks/useSpots';
 import { useLoggedSpotIds } from '../hooks/useLoggedSpotIds';
+import { useActivity } from '../hooks/useActivity';
 import './FeedPage.css';
 
 export function FeedPage() {
   const [city, setCity] = useState('');
   const [activePill, setActivePill] = useState(null);
+  const [searchTab, setSearchTab] = useState('location');
 
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
   const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category });
   const { loggedSpotIds, loading: logsLoading } = useLoggedSpotIds();
+  const { activity } = useActivity();
+
+  // Spots at least one followed user has logged or reviewed - drives the
+  // "Trusted by friends" search tab.
+  const friendsLoggedSpotIds = useMemo(() => {
+    const set = new Set();
+    for (const item of activity) set.add(String(item.spot_id));
+    return set;
+  }, [activity]);
 
   const sortedSpots = useMemo(() => {
-    if (activePill !== 'trending') return spots;
-    return [...spots].sort((a, b) => (b.log_count || 0) - (a.log_count || 0));
-  }, [spots, activePill]);
+    const base = searchTab === 'friends' ? spots.filter((spot) => friendsLoggedSpotIds.has(String(spot.id))) : spots;
+    if (activePill !== 'trending') return base;
+    return [...base].sort((a, b) => (b.log_count || 0) - (a.log_count || 0));
+  }, [spots, activePill, searchTab, friendsLoggedSpotIds]);
 
   function handleCategoryChange(value) {
     setActivePill(value || null);
@@ -35,6 +47,8 @@ export function FeedPage() {
     <>
       <NavBar>
         <SegmentedSearchBar
+          active={searchTab}
+          onActiveChange={setSearchTab}
           city={city}
           category={activePill && activePill !== 'trending' ? activePill : ''}
           onCityChange={setCity}

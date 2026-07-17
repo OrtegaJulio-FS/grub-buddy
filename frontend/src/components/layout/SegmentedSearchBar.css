@@ -26,18 +26,13 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.search-bar__tab:hover:not(:disabled) {
+.search-bar__tab:hover {
   color: var(--color-ink);
 }
 
 .search-bar__tab--active {
   background: var(--color-primary);
   color: var(--color-butter-cream);
-}
-
-.search-bar__tab:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .search-bar__input {
@@ -57,6 +52,17 @@
 
 .search-bar__input::placeholder {
   color: var(--color-text-muted);
+}
+
+.search-bar__input:disabled {
+  color: var(--color-secondary);
+  font-style: italic;
+  cursor: default;
+  opacity: 1;
+}
+
+.search-bar__input:disabled::placeholder {
+  color: var(--color-secondary);
 }
 
 @media (max-width: 640px) {
