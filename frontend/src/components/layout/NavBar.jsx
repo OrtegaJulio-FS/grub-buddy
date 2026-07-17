@@ -9,6 +9,9 @@ export function NavBar({ children }) {
           Grub<em>buds</em>
         </Link>
         <div className="nav-bar__search-slot">{children}</div>
+        <Link to="/profile" className="nav-bar__profile-link">
+          Profile
+        </Link>
       </div>
     </header>
   );

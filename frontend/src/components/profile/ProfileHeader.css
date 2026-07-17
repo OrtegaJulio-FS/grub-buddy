@@ -1,0 +1,71 @@
+.profile-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-header__identity {
+  flex: 1;
+  min-width: 200px;
+}
+
+.profile-header__name {
+  font-size: 2rem;
+  font-style: italic;
+}
+
+.profile-header__handle {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: var(--space-1);
+}
+
+.profile-header__bio {
+  margin-top: var(--space-3);
+  max-width: 52ch;
+}
+
+.profile-header__city {
+  margin-top: var(--space-2);
+  font-size: 0.8rem;
+  color: var(--color-secondary);
+}
+
+.profile-header__stats {
+  display: flex;
+  gap: var(--space-6);
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.profile-header__stat {
+  text-align: center;
+}
+
+.profile-header__stat dt {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.profile-header__stat dd {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-header__stats {
+    gap: var(--space-5);
+  }
+}

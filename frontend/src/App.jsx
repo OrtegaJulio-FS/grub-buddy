@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { FeedPage } from './pages/FeedPage';
 import { SpotPage } from './pages/SpotPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 function App() {
   return (
@@ -8,6 +9,8 @@ function App() {
       <Routes>
         <Route path="/" element={<FeedPage />} />
         <Route path="/spots/:id" element={<SpotPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );

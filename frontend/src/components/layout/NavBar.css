@@ -28,3 +28,18 @@
   flex: 1;
   min-width: 260px;
 }
+
+.nav-bar__profile-link {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-butter-cream);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  transition: background 0.15s ease;
+}
+
+.nav-bar__profile-link:hover {
+  background: rgba(246, 239, 216, 0.12);
+}
