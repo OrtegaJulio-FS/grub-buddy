@@ -8,6 +8,7 @@ const spotsRoutes = require('./routes/spots.routes');
 const logsRoutes = require('./routes/logs.routes');
 const reviewsRoutes = require('./routes/reviews.routes');
 const followsRoutes = require('./routes/follows.routes');
+const activityRoutes = require('./routes/activity.routes');
 const authRoutes = require('./routes/auth.routes');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/spots', fakeUser, spotsRoutes);
 app.use('/logs', fakeUser, logsRoutes);
 app.use('/reviews', fakeUser, reviewsRoutes);
 app.use('/follows', fakeUser, followsRoutes);
+app.use('/activity', fakeUser, activityRoutes);
 
 // 404 handler
 app.use((req, res) => {
