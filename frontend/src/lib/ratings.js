@@ -20,3 +20,28 @@ export function groupLogsBySpot(logs) {
   }
   return map;
 }
+
+// Ranks a set of logs (typically one user's) by spot: highest average rating
+// first, ties broken by visit count then by most recent visit. Used by the
+// Profile page's Top Spots section.
+export function rankSpotsByRating(logs) {
+  const grouped = groupLogsBySpot(logs);
+  const ranked = [];
+
+  for (const [spotId, spotLogs] of grouped) {
+    const { average, count } = summarizeLogs(spotLogs);
+    const mostRecentVisit = spotLogs.reduce(
+      (latest, log) => (!latest || new Date(log.visited_at) > new Date(latest) ? log.visited_at : latest),
+      null
+    );
+    ranked.push({ spotId, average, count, mostRecentVisit });
+  }
+
+  ranked.sort((a, b) => {
+    if (b.average !== a.average) return b.average - a.average;
+    if (b.count !== a.count) return b.count - a.count;
+    return new Date(b.mostRecentVisit) - new Date(a.mostRecentVisit);
+  });
+
+  return ranked;
+}

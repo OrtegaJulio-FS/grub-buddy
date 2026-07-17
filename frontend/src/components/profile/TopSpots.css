@@ -1,0 +1,16 @@
+.top-spots__title {
+  font-size: 1.6rem;
+  font-style: italic;
+  margin-bottom: var(--space-4);
+}
+
+.top-spots__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.top-spots__empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}

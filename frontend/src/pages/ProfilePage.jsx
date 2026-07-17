@@ -1,15 +1,28 @@
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { NavBar } from '../components/layout/NavBar';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
+import { TopSpots } from '../components/profile/TopSpots';
 import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
+import { useSpots } from '../hooks/useSpots';
 import { CURRENT_USER_ID } from '../lib/currentUser';
+import { rankSpotsByRating } from '../lib/ratings';
 import './ProfilePage.css';
 
 export function ProfilePage() {
   const { userId = CURRENT_USER_ID } = useParams();
   const { user, loading: userLoading, error: userError } = useUser(userId);
   const { logs } = useUserLogs(userId);
+  const { spots } = useSpots();
+
+  const spotsById = useMemo(() => {
+    const map = new Map();
+    for (const spot of spots) map.set(String(spot.id), spot);
+    return map;
+  }, [spots]);
+
+  const rankedSpots = useMemo(() => rankSpotsByRating(logs), [logs]);
 
   if (userLoading) {
     return (
@@ -43,6 +56,7 @@ export function ProfilePage() {
       <NavBar />
       <main className="profile-page container">
         <ProfileHeader user={user} stats={stats} />
+        <TopSpots ranked={rankedSpots} spotsById={spotsById} />
       </main>
     </>
   );
