@@ -5,17 +5,30 @@ import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { TopSpots } from '../components/profile/TopSpots';
 import { ListsSection } from '../components/profile/ListsSection';
 import { DiaryList } from '../components/profile/DiaryList';
+import { FollowButton } from '../components/profile/FollowButton';
 import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
 import { useSpots } from '../hooks/useSpots';
+import { useFollowers } from '../hooks/useFollowers';
+import { useFollowing } from '../hooks/useFollowing';
+import { useIsFollowing } from '../hooks/useIsFollowing';
 import { CURRENT_USER_ID } from '../lib/currentUser';
 import './ProfilePage.css';
 
 export function ProfilePage() {
   const { userId = CURRENT_USER_ID } = useParams();
+  const isOwnProfile = String(userId) === String(CURRENT_USER_ID);
   const { user, loading: userLoading, error: userError } = useUser(userId);
   const { logs } = useUserLogs(userId);
   const { spots } = useSpots();
+  const { followers, refetch: refetchFollowers } = useFollowers(userId);
+  const { following } = useFollowing(userId);
+  const { isFollowing, refetch: refetchIsFollowing } = useIsFollowing(userId);
+
+  function handleFollowChange() {
+    refetchFollowers();
+    refetchIsFollowing();
+  }
 
   const spotsById = useMemo(() => {
     const map = new Map();
@@ -60,20 +73,27 @@ export function ProfilePage() {
     );
   }
 
-  // followers/following have no backend yet (no /follows routes) - hardcoded
-  // to 0 rather than faked. listCount is likewise 0 until /lists exists.
+  // listCount is still 0 until /lists exists - followers/following are real now.
   const stats = {
     logCount: logs.length,
     listCount: 0,
-    followers: 0,
-    following: 0,
+    followers: followers.length,
+    following: following.length,
   };
 
   return (
     <>
       <NavBar />
       <main className="profile-page container">
-        <ProfileHeader user={user} stats={stats} />
+        <ProfileHeader
+          user={user}
+          stats={stats}
+          action={
+            !isOwnProfile && (
+              <FollowButton targetUserId={userId} isFollowing={isFollowing} onChange={handleFollowChange} />
+            )
+          }
+        />
         <TopSpots ranked={rankedSpots} spotsById={spotsById} />
         <ListsSection />
         <DiaryList logs={logs} spotsById={spotsById} />

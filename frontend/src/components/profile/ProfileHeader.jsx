@@ -2,13 +2,16 @@ import { Avatar } from '../common/Avatar';
 import { deriveHandle } from '../../lib/profile';
 import './ProfileHeader.css';
 
-export function ProfileHeader({ user, stats }) {
+export function ProfileHeader({ user, stats, action }) {
   return (
     <section className="profile-header">
       <Avatar name={user.name} size="lg" />
 
       <div className="profile-header__identity">
-        <h1 className="profile-header__name">{user.name}</h1>
+        <div className="profile-header__name-row">
+          <h1 className="profile-header__name">{user.name}</h1>
+          {action}
+        </div>
         <p className="profile-header__handle mono">{deriveHandle(user.name)}</p>
         {user.bio && <p className="profile-header__bio">{user.bio}</p>}
         {user.city && <p className="profile-header__city mono">{user.city}</p>}
