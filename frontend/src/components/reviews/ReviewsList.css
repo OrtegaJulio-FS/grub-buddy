@@ -1,0 +1,17 @@
+.reviews-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reviews-list__empty {
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-sage) 8%, transparent);
+}
+
+.reviews-list__empty p {
+  margin: 0;
+}

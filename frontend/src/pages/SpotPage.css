@@ -102,17 +102,9 @@
   margin-bottom: var(--space-4);
 }
 
-.reviews-section__placeholder {
-  border: 1.5px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-6);
+.reviews-section__loading {
   color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-sage) 8%, transparent);
-}
-
-.reviews-section__placeholder p {
-  margin: 0;
-  max-width: 60ch;
+  font-style: italic;
 }
 
 @media (max-width: 640px) {

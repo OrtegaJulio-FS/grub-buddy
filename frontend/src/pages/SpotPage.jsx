@@ -6,14 +6,17 @@ import { VisitStamp } from '../components/spots/VisitStamp';
 import { PlaceholderPhoto } from '../components/spots/PlaceholderPhoto';
 import { Button } from '../components/common/Button';
 import { LogVisitModal } from '../components/logs/LogVisitModal';
+import { ReviewsList } from '../components/reviews/ReviewsList';
 import { useSpot } from '../hooks/useSpot';
 import { useLoggedByMe } from '../hooks/useLoggedByMe';
+import { useReviews } from '../hooks/useReviews';
 import './SpotPage.css';
 
 export function SpotPage() {
   const { id } = useParams();
   const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
   const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
+  const { reviews, loading: reviewsLoading } = useReviews(id);
   const [modalOpen, setModalOpen] = useState(false);
 
   function handleLogged() {
@@ -83,12 +86,11 @@ export function SpotPage() {
 
         <section className="container reviews-section">
           <h2 className="reviews-section__title">Reviews</h2>
-          <div className="reviews-section__placeholder">
-            <p>
-              Full reviews are coming in a later phase. For now, every log's fork rating
-              and quick note feed straight into this spot's stats above.
-            </p>
-          </div>
+          {reviewsLoading ? (
+            <p className="reviews-section__loading">Loading reviews...</p>
+          ) : (
+            <ReviewsList reviews={reviews} />
+          )}
         </section>
       </main>
 

@@ -1,4 +1,4 @@
-import { Avatar } from './Avatar';
+import { Avatar } from '../common/Avatar';
 import { deriveHandle } from '../../lib/profile';
 import './ProfileHeader.css';
 
