@@ -24,7 +24,11 @@ export function SpotPage() {
     refetchLoggedByMe();
   }
 
-  if (spotLoading) {
+  // Only block on the *initial* load. Background refetches (after logging a
+  // visit) also flip spotLoading briefly - returning early for those would
+  // unmount the open Log-a-Visit modal mid-confirmation, wiping out its
+  // "submitted" state before the user ever sees it.
+  if (spotLoading && !spot) {
     return (
       <>
         <NavBar />
