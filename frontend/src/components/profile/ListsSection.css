@@ -1,0 +1,17 @@
+.lists-section__title {
+  font-size: 1.6rem;
+  font-style: italic;
+  margin-bottom: var(--space-4);
+}
+
+.lists-section__placeholder {
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-sage) 8%, transparent);
+}
+
+.lists-section__placeholder p {
+  margin: 0;
+}
