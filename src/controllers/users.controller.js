@@ -1,4 +1,5 @@
 const userModel = require('../models/user.model');
+const spotModel = require('../models/spot.model');
 const bcrypt = require('bcrypt');
 
 async function list(req, res, next) {
@@ -60,4 +61,13 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, getOne, create, update, remove };
+async function overlap(req, res, next) {
+  try {
+    const spots = await spotModel.findOverlap(req.params.id, req.params.otherId);
+    res.json(spots);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, getOne, create, update, remove, overlap };

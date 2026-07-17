@@ -82,4 +82,18 @@ async function remove(id) {
   return rowCount > 0;
 }
 
-module.exports = { create, findAll, findById, update, remove };
+// "Taste overlap" - spots both users have independently logged. Not wired
+// into any UI yet, just the query for a future profile-page feature.
+async function findOverlap(userId, otherUserId) {
+  const { rows } = await pool.query(
+    `SELECT DISTINCT spots.*
+     FROM spots
+     WHERE spots.id IN (SELECT spot_id FROM logs WHERE user_id = $1)
+       AND spots.id IN (SELECT spot_id FROM logs WHERE user_id = $2)
+     ORDER BY spots.name`,
+    [userId, otherUserId]
+  );
+  return rows;
+}
+
+module.exports = { create, findAll, findById, update, remove, findOverlap };

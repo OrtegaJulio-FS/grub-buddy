@@ -15,5 +15,6 @@ router.delete('/:id', usersController.remove);
 router.get('/:id/followers', followsController.listFollowers);
 router.get('/:id/following', followsController.listFollowing);
 router.get('/:id/is-following/:targetId', followsController.checkIsFollowing);
+router.get('/:id/overlap/:otherId', usersController.overlap);
 
 module.exports = router;
