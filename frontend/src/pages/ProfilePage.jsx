@@ -4,6 +4,7 @@ import { NavBar } from '../components/layout/NavBar';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { TopSpots } from '../components/profile/TopSpots';
 import { ListsSection } from '../components/profile/ListsSection';
+import { DiaryList } from '../components/profile/DiaryList';
 import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
 import { useSpots } from '../hooks/useSpots';
@@ -59,6 +60,7 @@ export function ProfilePage() {
         <ProfileHeader user={user} stats={stats} />
         <TopSpots ranked={rankedSpots} spotsById={spotsById} />
         <ListsSection />
+        <DiaryList logs={logs} spotsById={spotsById} />
       </main>
     </>
   );
