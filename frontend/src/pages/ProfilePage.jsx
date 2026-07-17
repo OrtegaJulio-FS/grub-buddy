@@ -9,7 +9,6 @@ import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
 import { useSpots } from '../hooks/useSpots';
 import { CURRENT_USER_ID } from '../lib/currentUser';
-import { rankSpotsByRating } from '../lib/ratings';
 import './ProfilePage.css';
 
 export function ProfilePage() {
@@ -24,7 +23,24 @@ export function ProfilePage() {
     return map;
   }, [spots]);
 
-  const rankedSpots = useMemo(() => rankSpotsByRating(logs), [logs]);
+  // Ranks by each spot's server-side average_rating/log_count (GET /spots),
+  // restricted to spots this user has actually logged. With only the one
+  // fake user right now, "this spot's average" and "my average" are the same
+  // number - once real multi-user auth exists, this should switch to a
+  // per-user aggregate instead of the spot-wide one.
+  const rankedSpots = useMemo(() => {
+    const visitedSpotIds = new Set(logs.map((log) => String(log.spot_id)));
+    return Array.from(visitedSpotIds)
+      .map((spotId) => spotsById.get(spotId))
+      .filter(Boolean)
+      .sort((a, b) => {
+        if ((b.average_rating || 0) !== (a.average_rating || 0)) {
+          return (b.average_rating || 0) - (a.average_rating || 0);
+        }
+        return (b.log_count || 0) - (a.log_count || 0);
+      })
+      .map((spot) => ({ spotId: String(spot.id), average: spot.average_rating, count: spot.log_count }));
+  }, [logs, spotsById]);
 
   if (userLoading) {
     return (

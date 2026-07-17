@@ -4,7 +4,7 @@ import { SegmentedSearchBar } from '../components/layout/SegmentedSearchBar';
 import { FilterPills } from '../components/layout/FilterPills';
 import { SpotGrid } from '../components/spots/SpotGrid';
 import { useSpots } from '../hooks/useSpots';
-import { useFeedLogs } from '../hooks/useFeedLogs';
+import { useLoggedSpotIds } from '../hooks/useLoggedSpotIds';
 import './FeedPage.css';
 
 export function FeedPage() {
@@ -14,16 +14,12 @@ export function FeedPage() {
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
   const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category });
-  const { statsBySpot, loggedSpotIds, loading: logsLoading } = useFeedLogs();
+  const { loggedSpotIds, loading: logsLoading } = useLoggedSpotIds();
 
   const sortedSpots = useMemo(() => {
     if (activePill !== 'trending') return spots;
-    return [...spots].sort((a, b) => {
-      const countA = statsBySpot.get(String(a.id))?.count || 0;
-      const countB = statsBySpot.get(String(b.id))?.count || 0;
-      return countB - countA;
-    });
-  }, [spots, activePill, statsBySpot]);
+    return [...spots].sort((a, b) => (b.log_count || 0) - (a.log_count || 0));
+  }, [spots, activePill]);
 
   function handleCategoryChange(value) {
     setActivePill(value || null);
@@ -63,7 +59,7 @@ export function FeedPage() {
         {loading && !spotsError ? (
           <p className="feed-page__loading">Loading spots...</p>
         ) : (
-          <SpotGrid spots={sortedSpots} statsBySpot={statsBySpot} loggedSpotIds={loggedSpotIds} />
+          <SpotGrid spots={sortedSpots} loggedSpotIds={loggedSpotIds} />
         )}
       </main>
     </>

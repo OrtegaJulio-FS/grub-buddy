@@ -7,14 +7,19 @@ import { PlaceholderPhoto } from '../components/spots/PlaceholderPhoto';
 import { Button } from '../components/common/Button';
 import { LogVisitModal } from '../components/logs/LogVisitModal';
 import { useSpot } from '../hooks/useSpot';
-import { useLogsForSpot } from '../hooks/useLogsForSpot';
+import { useLoggedByMe } from '../hooks/useLoggedByMe';
 import './SpotPage.css';
 
 export function SpotPage() {
   const { id } = useParams();
-  const { spot, loading: spotLoading, error: spotError } = useSpot(id);
-  const { average, count, loggedByMe, refetch: refetchLogs } = useLogsForSpot(id);
+  const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
+  const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
   const [modalOpen, setModalOpen] = useState(false);
+
+  function handleLogged() {
+    refetchSpot();
+    refetchLoggedByMe();
+  }
 
   if (spotLoading) {
     return (
@@ -68,7 +73,7 @@ export function SpotPage() {
             </div>
 
             <div className="spot-hero__ratings-row">
-              <ForkRating average={average} count={count} size="lg" />
+              <ForkRating average={spot.average_rating} count={spot.log_count} size="lg" />
               <Button variant="primary" size="lg" onClick={() => setModalOpen(true)}>
                 Log a visit
               </Button>
@@ -91,7 +96,7 @@ export function SpotPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         spot={spot}
-        onLogged={refetchLogs}
+        onLogged={handleLogged}
       />
     </>
   );
