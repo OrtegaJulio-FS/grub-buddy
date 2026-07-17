@@ -1,0 +1,46 @@
+:root {
+  /* Colors - Grubbuds design system, locked */
+  --color-butter-cream: #f6efd8;
+  --color-pine: #1f3a2e;
+  --color-paprika: #c1592a;
+  --color-mustard: #e3a72e;
+  --color-ink: #2b2622;
+  --color-sage: #8fa688;
+
+  /* Semantic aliases */
+  --color-bg: var(--color-butter-cream);
+  --color-surface: #ffffff;
+  --color-primary: var(--color-pine);
+  --color-accent: var(--color-paprika);
+  --color-highlight: var(--color-mustard);
+  --color-text: var(--color-ink);
+  --color-text-muted: color-mix(in srgb, var(--color-ink) 65%, transparent);
+  --color-secondary: var(--color-sage);
+  --color-border: color-mix(in srgb, var(--color-ink) 12%, transparent);
+
+  /* Fonts */
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body: 'Karla', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(43, 38, 34, 0.08), 0 1px 2px rgba(43, 38, 34, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(43, 38, 34, 0.14), 0 2px 6px rgba(43, 38, 34, 0.08);
+  --shadow-modal: 0 24px 64px rgba(43, 38, 34, 0.28);
+}

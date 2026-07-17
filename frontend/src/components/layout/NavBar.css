@@ -1,0 +1,30 @@
+.nav-bar {
+  background: var(--color-primary);
+  padding: var(--space-4) 0;
+}
+
+.nav-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.nav-bar__logo {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-butter-cream);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-bar__logo em {
+  color: var(--color-highlight);
+  font-style: italic;
+}
+
+.nav-bar__search-slot {
+  flex: 1;
+  min-width: 260px;
+}

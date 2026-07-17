@@ -1,0 +1,24 @@
+.fork-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fork-rating__forks {
+  display: flex;
+  gap: 2px;
+}
+
+.fork-rating__value {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.fork-rating--lg .fork-rating__value {
+  font-size: 1.25rem;
+}
+
+.fork-rating__count {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}

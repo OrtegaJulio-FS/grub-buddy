@@ -1,0 +1,14 @@
+.spot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-5);
+}
+
+.spot-grid__empty {
+  padding: var(--space-8) 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+}

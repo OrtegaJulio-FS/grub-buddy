@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: grubbuds-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: grubbuds
+      POSTGRES_PASSWORD: grubbuds
+      POSTGRES_DB: grubbuds
+    ports:
+      - "5432:5432"
+    volumes:
+      - grubbuds-data:/var/lib/postgresql/data
+
+volumes:
+  grubbuds-data:
