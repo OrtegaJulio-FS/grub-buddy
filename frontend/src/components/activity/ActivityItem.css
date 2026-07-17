@@ -34,6 +34,11 @@
 .activity-item__user {
   font-weight: 600;
   color: var(--color-primary);
+  text-decoration: none;
+}
+
+.activity-item__user:hover {
+  text-decoration: underline;
 }
 
 .activity-item__spot {

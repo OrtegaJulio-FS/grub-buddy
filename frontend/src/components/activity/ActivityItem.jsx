@@ -10,12 +10,17 @@ export function ActivityItem({ item }) {
 
   return (
     <li className="activity-item">
-      <Avatar name={item.user_name} size="sm" />
+      <Link to={`/profile/${item.user_id}`}>
+        <Avatar name={item.user_name} size="sm" />
+      </Link>
 
       <div className="activity-item__body">
         <div className="activity-item__header">
           <p className="activity-item__headline">
-            <span className="activity-item__user">{item.user_name}</span> {verb}{' '}
+            <Link to={`/profile/${item.user_id}`} className="activity-item__user">
+              {item.user_name}
+            </Link>{' '}
+            {verb}{' '}
             <Link to={`/spots/${item.spot_id}`} className="activity-item__spot">
               {item.spot_name}
             </Link>

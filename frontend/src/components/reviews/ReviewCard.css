@@ -28,6 +28,11 @@
 .review-card__name {
   font-weight: 600;
   color: var(--color-primary);
+  text-decoration: none;
+}
+
+.review-card__name:hover {
+  text-decoration: underline;
 }
 
 .review-card__date {
