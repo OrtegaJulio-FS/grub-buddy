@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { NavBar } from '../components/layout/NavBar';
 import { ForkRating } from '../components/spots/ForkRating';
@@ -11,6 +11,8 @@ import { WriteReviewModal } from '../components/reviews/WriteReviewModal';
 import { useSpot } from '../hooks/useSpot';
 import { useLoggedByMe } from '../hooks/useLoggedByMe';
 import { useReviews } from '../hooks/useReviews';
+import { useFollowing } from '../hooks/useFollowing';
+import { CURRENT_USER_ID } from '../lib/currentUser';
 import './SpotPage.css';
 
 export function SpotPage() {
@@ -18,8 +20,17 @@ export function SpotPage() {
   const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
   const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
   const { reviews, loading: reviewsLoading, refetch: refetchReviews } = useReviews(id);
+  const { following } = useFollowing(CURRENT_USER_ID);
   const [modalOpen, setModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+
+  // "Friends" = the current user themself plus everyone they follow - used to
+  // sort reviews friends-first on the Spot Page.
+  const friendIds = useMemo(() => {
+    const set = new Set([String(CURRENT_USER_ID)]);
+    for (const user of following) set.add(String(user.id));
+    return set;
+  }, [following]);
 
   function handleLogged() {
     refetchSpot();
@@ -106,7 +117,7 @@ export function SpotPage() {
           {reviewsLoading ? (
             <p className="reviews-section__loading">Loading reviews...</p>
           ) : (
-            <ReviewsList reviews={reviews} />
+            <ReviewsList reviews={reviews} friendIds={friendIds} />
           )}
         </section>
       </main>

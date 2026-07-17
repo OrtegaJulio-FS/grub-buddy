@@ -1,12 +1,22 @@
 import { ReviewCard } from './ReviewCard';
 import './ReviewsList.css';
 
-// Most-recent-first for now; switch to friends-first once /follows exists (Phase 5).
 function byMostRecent(a, b) {
   return new Date(b.visited_at) - new Date(a.visited_at);
 }
 
-export function ReviewsList({ reviews }) {
+// Friends-first: reviews from the current user or anyone they follow sort
+// ahead of everyone else's, most-recent-first within each group.
+function rankReviews(reviews, friendIds) {
+  const friends = [];
+  const others = [];
+  for (const review of reviews) {
+    (friendIds.has(String(review.user_id)) ? friends : others).push(review);
+  }
+  return [...friends.sort(byMostRecent), ...others.sort(byMostRecent)];
+}
+
+export function ReviewsList({ reviews, friendIds }) {
   if (reviews.length === 0) {
     return (
       <div className="reviews-list__empty">
@@ -15,7 +25,7 @@ export function ReviewsList({ reviews }) {
     );
   }
 
-  const sorted = [...reviews].sort(byMostRecent);
+  const sorted = rankReviews(reviews, friendIds);
 
   return (
     <ul className="reviews-list">
