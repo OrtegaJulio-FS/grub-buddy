@@ -29,6 +29,13 @@
   min-width: 260px;
 }
 
+.nav-bar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 .nav-bar__profile-link {
   flex-shrink: 0;
   font-weight: 600;

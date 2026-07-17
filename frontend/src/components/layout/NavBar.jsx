@@ -9,9 +9,14 @@ export function NavBar({ children }) {
           Grub<em>buds</em>
         </Link>
         <div className="nav-bar__search-slot">{children}</div>
-        <Link to="/profile" className="nav-bar__profile-link">
-          Profile
-        </Link>
+        <nav className="nav-bar__links">
+          <Link to="/activity" className="nav-bar__profile-link">
+            Activity
+          </Link>
+          <Link to="/profile" className="nav-bar__profile-link">
+            Profile
+          </Link>
+        </nav>
       </div>
     </header>
   );
