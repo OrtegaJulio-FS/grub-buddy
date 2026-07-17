@@ -10,29 +10,52 @@ async function create({ name, category, address, lat, lng, coverPhotoUrl, create
   return rows[0];
 }
 
+// average_rating/log_count are computed here (LEFT JOIN + GROUP BY) rather
+// than by the frontend fetching every log and aggregating client-side -
+// cheaper at scale and the single source of truth for "what's this spot
+// rated". AVG/COUNT are cast to float/int because node-pg otherwise returns
+// numeric/bigint as strings.
 async function findAll({ city, category } = {}) {
   const conditions = [];
   const values = [];
 
   if (city) {
     values.push(city);
-    conditions.push(`city = $${values.length}`);
+    conditions.push(`spots.city = $${values.length}`);
   }
   if (category) {
     values.push(category);
-    conditions.push(`category = $${values.length}`);
+    conditions.push(`spots.category = $${values.length}`);
   }
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const { rows } = await pool.query(
-    `SELECT * FROM spots ${whereClause} ORDER BY created_at DESC`,
+    `SELECT
+       spots.*,
+       AVG(logs.rating)::float AS average_rating,
+       COUNT(logs.id)::int AS log_count
+     FROM spots
+     LEFT JOIN logs ON logs.spot_id = spots.id
+     ${whereClause}
+     GROUP BY spots.id
+     ORDER BY spots.created_at DESC`,
     values
   );
   return rows;
 }
 
 async function findById(id) {
-  const { rows } = await pool.query('SELECT * FROM spots WHERE id = $1', [id]);
+  const { rows } = await pool.query(
+    `SELECT
+       spots.*,
+       AVG(logs.rating)::float AS average_rating,
+       COUNT(logs.id)::int AS log_count
+     FROM spots
+     LEFT JOIN logs ON logs.spot_id = spots.id
+     WHERE spots.id = $1
+     GROUP BY spots.id`,
+    [id]
+  );
   return rows[0];
 }
 
