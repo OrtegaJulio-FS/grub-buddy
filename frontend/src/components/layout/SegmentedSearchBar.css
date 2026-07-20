@@ -71,6 +71,17 @@
     border-radius: var(--radius-md);
   }
 
+  .search-bar__tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .search-bar__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
   .search-bar__input {
     width: 100%;
   }
