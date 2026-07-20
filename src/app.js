@@ -27,7 +27,11 @@ app.use('/auth', authRoutes);
 
 // Core loop routes - no real auth yet, every request is treated as the same
 // hardcoded user (see middleware/fakeUser.js). Swap `fakeUser` for
-// `middleware/auth.js`'s requireAuth once you're ready to require real logins.
+// `middleware/auth.js`'s requireAuth once you're ready to require real
+// logins - that swap only changes who req.user is. It does not add
+// authorization by itself; the ownership checks that decide who's allowed
+// to edit/delete a given resource live in the controllers (src/utils/ownership.js)
+// and already read req.user.id, so they keep working unchanged either way.
 app.use('/users', fakeUser, usersRoutes);
 app.use('/spots', fakeUser, spotsRoutes);
 app.use('/logs', fakeUser, logsRoutes);

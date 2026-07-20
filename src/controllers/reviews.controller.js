@@ -1,4 +1,6 @@
 const reviewModel = require('../models/review.model');
+const logModel = require('../models/log.model');
+const { isOwnedBy } = require('../utils/ownership');
 
 async function listBySpot(req, res, next) {
   try {
@@ -22,6 +24,13 @@ async function create(req, res, next) {
     if (rating !== undefined && rating !== null && !isValidRating(rating)) {
       return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
     }
+
+    const log = await logModel.findById(logId);
+    if (!log) return res.status(404).json({ error: 'Log not found' });
+    if (!isOwnedBy(log, req.user.id)) {
+      return res.status(403).json({ error: 'You can only review your own logs' });
+    }
+
     const review = await reviewModel.create({ logId, body, rating, tags });
     res.status(201).json(review);
   } catch (err) {
@@ -37,12 +46,19 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
+    const existing = await reviewModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Review not found' });
+
+    const log = await logModel.findById(existing.log_id);
+    if (!isOwnedBy(log, req.user.id)) {
+      return res.status(403).json({ error: 'You can only edit your own reviews' });
+    }
+
     const { body, rating, tags } = req.body;
     if (rating !== undefined && rating !== null && !isValidRating(rating)) {
       return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
     }
     const review = await reviewModel.update(req.params.id, { body, rating, tags });
-    if (!review) return res.status(404).json({ error: 'Review not found' });
     res.json(review);
   } catch (err) {
     next(err);

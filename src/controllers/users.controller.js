@@ -42,6 +42,9 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
+    if (String(req.params.id) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'You can only edit your own profile' });
+    }
     const { name, bio, avatarUrl, city } = req.body;
     const user = await userModel.update(req.params.id, { name, bio, avatarUrl, city });
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -53,6 +56,9 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
+    if (String(req.params.id) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'You can only delete your own account' });
+    }
     const deleted = await userModel.remove(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'User not found' });
     res.status(204).send();

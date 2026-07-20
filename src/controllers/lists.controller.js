@@ -1,4 +1,5 @@
 const listModel = require('../models/list.model');
+const { isOwnedBy } = require('../utils/ownership');
 
 async function create(req, res, next) {
   try {
@@ -26,9 +27,14 @@ async function getOne(req, res, next) {
 
 async function update(req, res, next) {
   try {
+    const existing = await listModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'List not found' });
+    if (!isOwnedBy(existing, req.user.id)) {
+      return res.status(403).json({ error: 'You can only edit your own lists' });
+    }
+
     const { title, description, isPublic } = req.body;
     const list = await listModel.update(req.params.id, { title, description, isPublic });
-    if (!list) return res.status(404).json({ error: 'List not found' });
     res.json(list);
   } catch (err) {
     next(err);
@@ -37,8 +43,13 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const deleted = await listModel.remove(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'List not found' });
+    const existing = await listModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'List not found' });
+    if (!isOwnedBy(existing, req.user.id)) {
+      return res.status(403).json({ error: 'You can only delete your own lists' });
+    }
+
+    await listModel.remove(req.params.id);
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -47,6 +58,12 @@ async function remove(req, res, next) {
 
 async function addItem(req, res, next) {
   try {
+    const existing = await listModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'List not found' });
+    if (!isOwnedBy(existing, req.user.id)) {
+      return res.status(403).json({ error: 'You can only add spots to your own lists' });
+    }
+
     const { spotId } = req.body;
     if (!spotId) {
       return res.status(400).json({ error: 'spotId is required' });
@@ -66,6 +83,12 @@ async function addItem(req, res, next) {
 
 async function removeItem(req, res, next) {
   try {
+    const existing = await listModel.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'List not found' });
+    if (!isOwnedBy(existing, req.user.id)) {
+      return res.status(403).json({ error: 'You can only remove spots from your own lists' });
+    }
+
     const removed = await listModel.removeItem(req.params.id, req.params.spotId);
     if (!removed) return res.status(404).json({ error: 'Spot not on this list' });
     res.status(204).send();
