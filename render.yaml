@@ -8,6 +8,8 @@ services:
     envVars:
       - key: PORT
         value: 3000
+      - key: NODE_ENV
+        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: grubbuds-db
@@ -23,6 +25,12 @@ services:
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
+        sync: false
+      # Your deployed frontend's URL (e.g. https://grubbuds.vercel.app) -
+      # comma-separate more than one. With NODE_ENV=production above, leaving
+      # this unset blocks all cross-origin requests rather than allowing any
+      # origin, so this needs to be set before the frontend can reach the API.
+      - key: CORS_ORIGIN
         sync: false
 
 databases:

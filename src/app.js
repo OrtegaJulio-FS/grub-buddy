@@ -16,10 +16,23 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
+// CORS_ORIGIN can be a single origin or a comma-separated list (e.g. a
+// staging + production frontend URL). Only defaults to "allow everyone" when
+// NODE_ENV isn't "production" - a production deploy with no CORS_ORIGIN set
+// fails closed (blocks all cross-origin requests) rather than silently
+// allowing any site to call the API.
+function resolveCorsOrigin() {
+  if (process.env.CORS_ORIGIN) {
+    const origins = process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+    return origins.length === 1 ? origins[0] : origins;
+  }
+  return process.env.NODE_ENV === 'production' ? false : '*';
+}
+
 // Pure JSON API - no HTML/scripts served here, so helmet's defaults (CSP,
 // no-sniff, frameguard, etc) apply cleanly with no custom directives needed.
 app.use(helmet());
-app.use(cors());
+app.use(cors({ origin: resolveCorsOrigin() }));
 app.use(morgan('dev'));
 app.use(express.json());
 
