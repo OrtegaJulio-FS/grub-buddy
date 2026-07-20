@@ -15,11 +15,10 @@ what people they follow are up to.
 ## Project structure
 
 ```
+migrations/        # node-pg-migrate migrations (versioned schema changes)
 db/
-  schema.sql       # full table definitions
-  migrate.js       # applies schema.sql
-  seed.sql/seed.js # seeds the fake user (id=1) plus 3 more users with
-                   # logs/reviews/follows between them, for real social data
+  seed.sql/seed.js  # seeds the fake user (id=1) plus 3 more users with
+                    # logs/reviews/follows between them, for real social data
 src/
   config/          # pg Pool, Cloudinary client
   middleware/
@@ -61,15 +60,17 @@ src/
    npm install
    ```
 
-4. **Apply the schema**:
+4. **Apply migrations**:
 
    ```bash
    npm run db:migrate
    ```
 
-   This is a single `schema.sql` file applied directly - there's no
-   migration-history table or versioning yet. Fine while the schema is still
-   moving; consider `node-pg-migrate` once it stabilizes.
+   Runs [node-pg-migrate](https://github.com/salsita/node-pg-migrate) against
+   `migrations/`. The first migration (`baseline`) captures the schema as it
+   stood under the old `schema.sql` approach; everything after that is a
+   normal versioned migration (`npm run db:migrate:create -- some_name` to
+   add one, `npm run db:migrate:down` to roll back the most recent one).
 
 5. **Seed the database** (fake user id=1, plus 3 more users with their own
    logs/reviews/follows so social features have real data to show):
@@ -172,9 +173,6 @@ above actually deploys anything by itself.
 - **IDs are auto-incrementing integers (`BIGSERIAL`), not UUIDs.** Simpler and
   faster to work with for now; switch later if you need non-guessable public
   IDs (e.g. so spot/user IDs in a shared link don't reveal row counts).
-- **No migration framework** - `db/schema.sql` is applied wholesale. Once the
-  schema stabilizes, move to versioned migrations (`node-pg-migrate` or similar)
-  so changes can be applied incrementally to a populated database.
 - **`reviews.log_id` is `UNIQUE`** - one review per log, treating a review as
   an optional long-form extension of a log's required rating. Drop the
   constraint if a log should support multiple reviews.
