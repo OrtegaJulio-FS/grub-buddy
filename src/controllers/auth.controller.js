@@ -1,12 +1,19 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/user.model');
 const { signToken } = require('../utils/jwt');
+const { isValidEmail } = require('../utils/validation');
 
 async function signup(req, res, next) {
   try {
     const { name, email, password, bio, avatarUrl, city } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'name, email, and password are required' });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'email must be a valid email address' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'password must be at least 8 characters' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
