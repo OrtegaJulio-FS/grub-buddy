@@ -20,4 +20,25 @@ function isFutureDate(dateString) {
   return new Date(dateString).getTime() > Date.now();
 }
 
-module.exports = { isValidEmail, parsePositiveInt, isFutureDate };
+// Parses limit/offset query params for list endpoints. Malformed values
+// (non-integer, negative) return null - callers should 400. An
+// over-the-max limit is clamped down to maxLimit rather than rejected.
+function parsePagination(query, { defaultLimit = 50, maxLimit = 100 } = {}) {
+  let limit = defaultLimit;
+  if (query.limit !== undefined) {
+    const parsed = Number(query.limit);
+    if (!Number.isInteger(parsed) || parsed <= 0) return null;
+    limit = Math.min(parsed, maxLimit);
+  }
+
+  let offset = 0;
+  if (query.offset !== undefined) {
+    const parsed = Number(query.offset);
+    if (!Number.isInteger(parsed) || parsed < 0) return null;
+    offset = parsed;
+  }
+
+  return { limit, offset };
+}
+
+module.exports = { isValidEmail, parsePositiveInt, isFutureDate, parsePagination };

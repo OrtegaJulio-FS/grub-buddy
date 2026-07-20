@@ -1,5 +1,5 @@
 const spotModel = require('../models/spot.model');
-const { parsePositiveInt } = require('../utils/validation');
+const { parsePositiveInt, parsePagination } = require('../utils/validation');
 
 async function list(req, res, next) {
   try {
@@ -13,7 +13,12 @@ async function list(req, res, next) {
       }
     }
 
-    const spots = await spotModel.findAll({ city, category, minRating, search });
+    const pagination = parsePagination(req.query);
+    if (pagination === null) {
+      return res.status(400).json({ error: 'limit/offset must be positive integers' });
+    }
+
+    const spots = await spotModel.findAll({ city, category, minRating, search, ...pagination });
     res.json(spots);
   } catch (err) {
     next(err);

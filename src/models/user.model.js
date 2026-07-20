@@ -12,9 +12,10 @@ async function create({ name, email, passwordHash, bio, avatarUrl, city }) {
   return rows[0];
 }
 
-async function findAll() {
+async function findAll({ limit = 50, offset = 0 } = {}) {
   const { rows } = await pool.query(
-    `SELECT ${PUBLIC_COLUMNS} FROM users ORDER BY created_at DESC`
+    `SELECT ${PUBLIC_COLUMNS} FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+    [limit, offset]
   );
   return rows;
 }

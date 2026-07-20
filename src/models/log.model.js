@@ -10,7 +10,7 @@ async function create({ userId, spotId, visitedAt, rating, quickNote, photoUrl }
   return rows[0];
 }
 
-async function findAll({ userId, spotId } = {}) {
+async function findAll({ userId, spotId, limit = 50, offset = 0 } = {}) {
   const conditions = [];
   const values = [];
 
@@ -24,8 +24,9 @@ async function findAll({ userId, spotId } = {}) {
   }
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  values.push(limit, offset);
   const { rows } = await pool.query(
-    `SELECT * FROM logs ${whereClause} ORDER BY visited_at DESC`,
+    `SELECT * FROM logs ${whereClause} ORDER BY visited_at DESC LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values
   );
   return rows;

@@ -18,7 +18,7 @@ async function create({ name, category, address, lat, lng, coverPhotoUrl, create
 //
 // minRating filters on the aggregate itself, so it has to be a HAVING clause
 // (applied after GROUP BY) rather than a WHERE condition on the raw rows.
-async function findAll({ city, category, minRating, search } = {}) {
+async function findAll({ city, category, minRating, search, limit = 50, offset = 0 } = {}) {
   const conditions = [];
   const values = [];
 
@@ -46,6 +46,7 @@ async function findAll({ city, category, minRating, search } = {}) {
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const havingClause = havingConditions.length ? `HAVING ${havingConditions.join(' AND ')}` : '';
 
+  values.push(limit, offset);
   const { rows } = await pool.query(
     `SELECT
        spots.*,
@@ -56,7 +57,8 @@ async function findAll({ city, category, minRating, search } = {}) {
      ${whereClause}
      GROUP BY spots.id
      ${havingClause}
-     ORDER BY spots.created_at DESC`,
+     ORDER BY spots.created_at DESC
+     LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values
   );
   return rows;

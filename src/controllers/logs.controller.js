@@ -1,11 +1,17 @@
 const logModel = require('../models/log.model');
 const { isOwnedBy } = require('../utils/ownership');
-const { isFutureDate } = require('../utils/validation');
+const { isFutureDate, parsePagination } = require('../utils/validation');
 
 async function list(req, res, next) {
   try {
     const { userId, spotId } = req.query;
-    const logs = await logModel.findAll({ userId, spotId });
+
+    const pagination = parsePagination(req.query);
+    if (pagination === null) {
+      return res.status(400).json({ error: 'limit/offset must be positive integers' });
+    }
+
+    const logs = await logModel.findAll({ userId, spotId, ...pagination });
     res.json(logs);
   } catch (err) {
     next(err);

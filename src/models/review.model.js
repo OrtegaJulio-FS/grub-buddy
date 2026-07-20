@@ -13,7 +13,7 @@ async function create({ logId, body, rating, tags }) {
 // Reviews don't carry their own reviewer/spot columns - both come through the
 // log they're attached to (logs.user_id, logs.spot_id), so every read joins
 // through logs (and users, for the reviewer's name).
-async function findBySpotId(spotId) {
+async function findBySpotId(spotId, { limit = 50, offset = 0 } = {}) {
   const { rows } = await pool.query(
     `SELECT
        reviews.id,
@@ -30,8 +30,9 @@ async function findBySpotId(spotId) {
      JOIN logs ON logs.id = reviews.log_id
      JOIN users ON users.id = logs.user_id
      WHERE logs.spot_id = $1
-     ORDER BY reviews.created_at DESC`,
-    [spotId]
+     ORDER BY reviews.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [spotId, limit, offset]
   );
   return rows;
 }

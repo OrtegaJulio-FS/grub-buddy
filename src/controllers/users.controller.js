@@ -1,10 +1,15 @@
 const userModel = require('../models/user.model');
 const spotModel = require('../models/spot.model');
 const bcrypt = require('bcrypt');
+const { parsePagination } = require('../utils/validation');
 
 async function list(req, res, next) {
   try {
-    const users = await userModel.findAll();
+    const pagination = parsePagination(req.query);
+    if (pagination === null) {
+      return res.status(400).json({ error: 'limit/offset must be positive integers' });
+    }
+    const users = await userModel.findAll(pagination);
     res.json(users);
   } catch (err) {
     next(err);
