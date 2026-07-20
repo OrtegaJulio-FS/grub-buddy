@@ -1,14 +1,16 @@
 # Grubbuds
 
 Backend for Grubbuds — a social discovery app for local spots ("Letterboxd for
-restaurants/cafés"). Users log visits, rate spots (required 1-5 forks), follow
-each other, and build curated lists.
+restaurants/cafés"). Users log visits, rate spots (required 1-5 forks), write
+reviews, follow each other, build curated lists, and see an activity feed of
+what people they follow are up to.
 
 ## Stack
 
 - Node.js + Express
 - PostgreSQL (via `pg`, raw SQL - no ORM)
 - JWT auth (`jsonwebtoken` + `bcrypt`), wired up separately from the core routes
+- Cloudinary for image uploads (spot photos, avatars)
 
 ## Project structure
 
@@ -16,12 +18,14 @@ each other, and build curated lists.
 db/
   schema.sql       # full table definitions
   migrate.js       # applies schema.sql
-  seed.sql/seed.js # seeds the fake user used by the no-auth routes
+  seed.sql/seed.js # seeds the fake user (id=1) plus 3 more users with
+                   # logs/reviews/follows between them, for real social data
 src/
-  config/db.js     # pg Pool
+  config/          # pg Pool, Cloudinary client
   middleware/
-    fakeUser.js    # hardcoded user, used by /users /spots /logs for now
+    fakeUser.js    # hardcoded user, used by every route below for now
     auth.js        # real JWT middleware (requireAuth) - not wired in yet
+    upload.js       # multer (in-memory) for image uploads
   models/          # raw SQL queries per table
   controllers/     # request handling, one per resource
   routes/          # route -> controller wiring
@@ -67,14 +71,18 @@ src/
    migration-history table or versioning yet. Fine while the schema is still
    moving; consider `node-pg-migrate` once it stabilizes.
 
-5. **Seed the fake user** (needed because `/spots` and `/logs` foreign-key to
-   a user row):
+5. **Seed the database** (fake user id=1, plus 3 more users with their own
+   logs/reviews/follows so social features have real data to show):
 
    ```bash
    node db/seed.js
    ```
 
-6. **Run the server**:
+6. **(Optional) Enable image uploads** - see
+   [Image uploads (Cloudinary)](#image-uploads-cloudinary) below. The API
+   runs fine without this; `POST /uploads` just returns a 503 until it's set up.
+
+7. **Run the server**:
 
    ```bash
    npm run dev   # nodemon, restarts on file changes
@@ -86,18 +94,27 @@ src/
 
 ## API overview
 
-### Core loop (no auth yet)
+Every route below (except `/auth`) is treated as the same hardcoded user
+(`id: 1`, see `src/middleware/fakeUser.js`) so the app can be built/tested
+end-to-end before wiring up real login.
 
-Every request to these routes is treated as the same hardcoded user
-(`id: 1`, see `src/middleware/fakeUser.js`) so you can build/test the core
-loop before wiring up real login.
-
-- `GET/POST /users`, `GET/PUT/DELETE /users/:id`
-- `GET/POST /spots`, `GET/PUT/DELETE /spots/:id` (`GET /spots?city=&category=`)
-- `GET/POST /logs`, `GET/PUT/DELETE /logs/:id` (`GET /logs?userId=&spotId=`)
+- **Users** - `GET/POST /users`, `GET/PUT/DELETE /users/:id`
+- **Spots** - `GET/POST /spots`, `GET/PUT/DELETE /spots/:id`
+  (`GET /spots?city=&category=&minRating=&search=`), `GET /spots/trending`
+- **Logs** - `GET/POST /logs`, `GET/PUT/DELETE /logs/:id`
+  (`GET /logs?userId=&spotId=`)
+- **Reviews** - `GET /spots/:id/reviews`, `POST /reviews`, `PATCH /reviews/:id`
+- **Follows** - `POST /follows`, `DELETE /follows/:userId`,
+  `GET /users/:id/followers`, `GET /users/:id/following`,
+  `GET /users/:id/is-following/:targetId`, `GET /users/:id/overlap/:otherId`
+- **Activity** - `GET /activity` (merged logs+reviews from followed users)
+- **Lists** - `GET/POST /lists`, `GET/PATCH/DELETE /lists/:id`,
+  `POST/DELETE /lists/:id/items[/:spotId]`, `GET /users/:id/lists`
+- **Uploads** - `POST /uploads` (multipart `image` field, optional `folder`
+  of `avatars` or `spots`) → `{ url, publicId }`
 
 `POST /logs` requires `spotId` and an integer `rating` 1-5; everything else
-is optional.
+across these routes follows the same required/optional split you'd expect.
 
 ### Auth (separate track)
 
@@ -106,8 +123,49 @@ is optional.
 
 These issue real JWTs today but nothing currently *requires* them.
 `src/middleware/auth.js` exports `requireAuth`, ready to swap in for
-`fakeUser` in `src/app.js` once you want `/users`, `/spots`, and `/logs` to
-require a real logged-in user.
+`fakeUser` in `src/app.js` once you want the routes above to require a real
+logged-in user.
+
+## Image uploads (Cloudinary)
+
+`POST /uploads` streams an image straight to Cloudinary (never touches disk)
+and returns its `secure_url`. To enable it:
+
+1. Sign up at [cloudinary.com](https://cloudinary.com) (free tier is plenty
+   for development).
+2. From the [console dashboard](https://console.cloudinary.com/console), copy
+   your **Cloud name**, **API Key**, and **API Secret**.
+3. Set them in `.env`:
+   ```
+   CLOUDINARY_CLOUD_NAME=...
+   CLOUDINARY_API_KEY=...
+   CLOUDINARY_API_SECRET=...
+   ```
+
+Without these set, `POST /uploads` returns `503` rather than crashing - the
+rest of the app works fine either way. The API secret is server-side only;
+never put it in the frontend's `.env`.
+
+## Deployment (Render)
+
+`render.yaml` at the repo root is a
+[Render Blueprint](https://render.com/docs/infrastructure-as-code) defining
+the API as a web service plus a managed Postgres database.
+
+1. Push this repo to GitHub, then in Render: **New > Blueprint**, point it at
+   the repo. Render reads `render.yaml` and provisions both the web service
+   and the `grubbuds-db` database.
+2. `DATABASE_URL` and `JWT_SECRET` are wired up automatically by the
+   blueprint. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+   `CLOUDINARY_API_SECRET` manually in the Render dashboard (Environment tab)
+   - they're marked `sync: false` so they're never committed.
+3. After the first deploy, run the schema against the production database
+   once (Render's shell, or `DATABASE_URL=<prod-url> npm run db:migrate`
+   from your machine). Seeding production with the dev fake users is
+   optional and probably not what you want for a real deploy.
+
+This config is here so deploying is a few clicks when you're ready - nothing
+above actually deploys anything by itself.
 
 ## Decisions flagged for review
 
@@ -127,3 +185,14 @@ require a real logged-in user.
   just a date string and Postgres will coerce it.
 - **`follows` has no surrogate `id`** - `(follower_id, followed_id)` is the
   primary key, since that pair is already the natural unique constraint.
+- **`lists.is_public` has no visibility enforcement** - every request is still
+  the same fake user (no real auth), so there's no "someone else" to hide a
+  private list from yet. The column exists for the UI toggle and for when
+  real auth lands.
+- **`GET /spots/trending` still returns all-time `average_rating`/`log_count`**
+  for display consistency with every other spot listing - only the ranking
+  (`recent_log_count`, last 7 days) is time-boxed.
+- **Uploads always go to one of two fixed Cloudinary folders** (`grubbuds/avatars`
+  or `grubbuds/spots`) based on a `folder` field in the request, not a
+  per-user/per-spot path. Fine at this scale; revisit if uploads need to be
+  individually deletable/auditable later.
