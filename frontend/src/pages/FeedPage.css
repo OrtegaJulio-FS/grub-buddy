@@ -24,6 +24,13 @@
   flex-wrap: wrap;
 }
 
+.feed-page__toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
 .feed-page__view-toggle {
   display: flex;
   gap: var(--space-2);

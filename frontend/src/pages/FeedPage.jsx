@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { NavBar } from '../components/layout/NavBar';
 import { SegmentedSearchBar } from '../components/layout/SegmentedSearchBar';
 import { FilterPills } from '../components/layout/FilterPills';
+import { RatingFilter } from '../components/layout/RatingFilter';
 import { SpotGrid } from '../components/spots/SpotGrid';
 import { MapView } from '../components/map/MapView';
 import { Button } from '../components/common/Button';
@@ -12,13 +13,15 @@ import './FeedPage.css';
 
 export function FeedPage() {
   const [city, setCity] = useState('');
+  const [search, setSearch] = useState('');
+  const [minRating, setMinRating] = useState(undefined);
   const [activePill, setActivePill] = useState(null);
   const [searchTab, setSearchTab] = useState('location');
   const [viewMode, setViewMode] = useState('grid');
 
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
-  const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category });
+  const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category, minRating, search });
   const { loggedSpotIds, loading: logsLoading } = useLoggedSpotIds();
   const { activity } = useActivity();
 
@@ -54,8 +57,10 @@ export function FeedPage() {
           onActiveChange={setSearchTab}
           city={city}
           category={activePill && activePill !== 'trending' ? activePill : ''}
+          search={search}
           onCityChange={setCity}
           onCategoryChange={handleCategoryChange}
+          onSearchChange={setSearch}
         />
       </NavBar>
 
@@ -66,7 +71,10 @@ export function FeedPage() {
         </div>
 
         <div className="feed-page__toolbar">
-          <FilterPills active={activePill} onSelect={handlePillSelect} />
+          <div className="feed-page__toolbar-filters">
+            <FilterPills active={activePill} onSelect={handlePillSelect} />
+            <RatingFilter value={minRating} onChange={setMinRating} />
+          </div>
           <div className="feed-page__view-toggle">
             <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('grid')}>
               Grid
