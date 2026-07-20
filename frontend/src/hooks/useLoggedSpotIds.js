@@ -6,8 +6,10 @@ import { CURRENT_USER_ID } from '../lib/currentUser';
 // Which spots the current (fake) user has logged, for the Feed grid's visit
 // stamps. Rating/count come from the spot objects themselves now (server-side
 // aggregates via GET /spots) - this hook only answers "have I logged this?".
+// Requests the max page size (100) rather than the default 50 - missing an
+// older log here would wrongly hide that spot's visit stamp.
 export function useLoggedSpotIds() {
-  const fetcher = useCallback(() => listLogs({ userId: CURRENT_USER_ID }), []);
+  const fetcher = useCallback(() => listLogs({ userId: CURRENT_USER_ID, limit: 100 }), []);
   const { data, loading, error, refetch } = useAsync(fetcher, []);
 
   const loggedSpotIds = useMemo(() => {

@@ -1,7 +1,7 @@
 import { api } from './client';
 
-export function listLogs({ userId, spotId } = {}) {
-  return api.get('/logs', { userId, spotId });
+export function listLogs({ userId, spotId, limit, offset } = {}) {
+  return api.get('/logs', { userId, spotId, limit, offset });
 }
 
 export function createLog({ spotId, rating, visitedAt, quickNote, photoUrl }) {

@@ -1,7 +1,7 @@
 import { api } from './client';
 
-export function listSpots({ city, category, minRating, search } = {}) {
-  return api.get('/spots', { city, category, minRating, search });
+export function listSpots({ city, category, minRating, search, limit, offset } = {}) {
+  return api.get('/spots', { city, category, minRating, search, limit, offset });
 }
 
 export function getSpot(id) {

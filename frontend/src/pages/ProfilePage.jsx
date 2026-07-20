@@ -24,7 +24,10 @@ export function ProfilePage() {
   const isOwnProfile = String(userId) === String(CURRENT_USER_ID);
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userId);
   const { logs } = useUserLogs(userId);
-  const { spots } = useSpots();
+  // limit: 100 since this builds a lookup map (Top Spots, Diary thumbnails)
+  // that needs to resolve any spot the user has logged, not just the 50
+  // most-recently-created spots overall.
+  const { spots } = useSpots({ limit: 100 });
   const { followers, refetch: refetchFollowers } = useFollowers(userId);
   const { following } = useFollowing(userId);
   const { isFollowing, refetch: refetchIsFollowing } = useIsFollowing(userId);

@@ -22,7 +22,10 @@ export function FeedPage() {
 
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
-  const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category, minRating, search });
+  // limit: 100 (the API's max page size) rather than the default 50 - no
+  // "load more" UI exists yet, so a lower limit would silently drop spots
+  // off the end of the grid instead of paginating them.
+  const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category, minRating, search, limit: 100 });
   // Real "spots with the most logs in the last 7 days" from the backend -
   // fetched regardless of whether the Trending pill is active (cheap, and
   // keeps this a plain hook call) but only used when it is.

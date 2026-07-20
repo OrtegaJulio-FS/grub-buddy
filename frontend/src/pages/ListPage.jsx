@@ -12,7 +12,10 @@ export function ListPage() {
   const { id } = useParams();
   const { list, loading, error } = useList(id);
   const { user: owner } = useUser(list?.user_id);
-  const { spots: allSpots } = useSpots();
+  // limit: 100 since this builds a lookup map to enrich every spot on the
+  // list - missing one at the default 50 would silently fall back to the
+  // un-enriched row (no average_rating/log_count) for that spot.
+  const { spots: allSpots } = useSpots({ limit: 100 });
   const { loggedSpotIds } = useLoggedSpotIds();
 
   const spotsById = useMemo(() => {
