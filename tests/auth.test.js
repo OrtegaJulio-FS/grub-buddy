@@ -1,0 +1,85 @@
+const request = require('supertest');
+const app = require('../src/app');
+const { resetDb, closeDb } = require('./db');
+
+beforeEach(async () => {
+  await resetDb();
+});
+
+afterAll(async () => {
+  await closeDb();
+});
+
+// Order matters in this file: the rate-limit test intentionally exhausts
+// the limiter (10 attempts/15min/IP, shared across signup+login), so it
+// runs last. Each test file gets its own fresh module registry in Jest, so
+// the limiter's in-memory counter starts clean for this file regardless of
+// what other test files do.
+
+describe('signup/login happy path', () => {
+  test('signup creates a user and returns a token', async () => {
+    const res = await request(app)
+      .post('/auth/signup')
+      .send({ name: 'Auth Test', email: 'authtest@example.com', password: 'validpassword123' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.token).toEqual(expect.any(String));
+    expect(res.body.user.email).toBe('authtest@example.com');
+    expect(res.body.user.password_hash).toBeUndefined();
+  });
+
+  test('login with correct credentials returns a token', async () => {
+    await request(app)
+      .post('/auth/signup')
+      .send({ name: 'Auth Test', email: 'logintest@example.com', password: 'validpassword123' });
+
+    const res = await request(app)
+      .post('/auth/login')
+      .send({ email: 'logintest@example.com', password: 'validpassword123' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.token).toEqual(expect.any(String));
+  });
+});
+
+describe('bad credentials', () => {
+  test('login with wrong password returns 401', async () => {
+    await request(app)
+      .post('/auth/signup')
+      .send({ name: 'Auth Test', email: 'wrongpass@example.com', password: 'validpassword123' });
+
+    const res = await request(app)
+      .post('/auth/login')
+      .send({ email: 'wrongpass@example.com', password: 'totallywrongpassword' });
+
+    expect(res.status).toBe(401);
+  });
+
+  test('login with unknown email returns 401 (not a 404 leaking which emails exist)', async () => {
+    const res = await request(app)
+      .post('/auth/login')
+      .send({ email: 'doesnotexist@example.com', password: 'whatever123' });
+
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('rate limiting', () => {
+  test('exceeding 10 auth attempts from one IP returns 429', async () => {
+    let sawRateLimited = false;
+
+    for (let i = 0; i < 12; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const res = await request(app)
+        .post('/auth/login')
+        .send({ email: 'ratelimit@example.com', password: 'whatever123' });
+
+      if (res.status === 429) {
+        sawRateLimited = true;
+        break;
+      }
+    }
+
+    expect(sawRateLimited).toBe(true);
+  });
+});
