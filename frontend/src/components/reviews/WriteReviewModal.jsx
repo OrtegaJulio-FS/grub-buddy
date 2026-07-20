@@ -1,24 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { ForkRatingPicker } from '../logs/ForkRatingPicker';
 import { VisitStamp } from '../spots/VisitStamp';
 import { TagPicker } from './TagPicker';
-import { createLog } from '../../api/logs';
+import { listLogs, updateLog } from '../../api/logs';
 import { createReview } from '../../api/reviews';
 import { useMutation } from '../../hooks/useAsync';
+import { CURRENT_USER_ID } from '../../lib/currentUser';
+import { formatLogDate } from '../../lib/format';
 import './WriteReviewModal.css';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// A review needs a log to attach to (reviews.log_id is required + unique),
-// so writing one creates the visit log and the review together in one submit
-// - a fuller version of the Log-a-Visit flow rather than a separate log picker.
-async function submitReview({ spotId, visitedAt, rating, body, tags }) {
-  const log = await createLog({ spotId, rating, visitedAt });
-  return createReview({ logId: log.id, body, rating, tags });
+function mostRecent(logs) {
+  return [...logs].sort((a, b) => new Date(b.visited_at) - new Date(a.visited_at))[0];
+}
+
+// If the user already has a log for this spot, attaching the review to it
+// (rather than always logging a brand new visit) avoids double-counting the
+// same visit in log_count/average_rating. The log's rating is kept in sync
+// with whatever the review form submits, since they now describe one visit.
+async function submitReview({ spotId, existingLog, asNewVisit, visitedAt, rating, body, tags }) {
+  if (existingLog && !asNewVisit) {
+    await updateLog(existingLog.id, { rating });
+    return createReview({ logId: existingLog.id, body, rating, tags });
+  }
+  return createReview({ spotId, visitedAt, body, rating, tags });
 }
 
 export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
@@ -27,7 +37,25 @@ export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
   const [body, setBody] = useState('');
   const [tags, setTags] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [existingLog, setExistingLog] = useState(null);
+  const [asNewVisit, setAsNewVisit] = useState(false);
   const { loading, error, mutate } = useMutation(submitReview);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    listLogs({ spotId: spot.id, userId: CURRENT_USER_ID }).then((logs) => {
+      if (cancelled) return;
+      if (logs.length > 0) {
+        const log = mostRecent(logs);
+        setExistingLog(log);
+        setRating((current) => current ?? log.rating);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, spot.id]);
 
   function resetAndClose() {
     setVisitedAt(today());
@@ -35,16 +63,20 @@ export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
     setBody('');
     setTags([]);
     setSubmitted(false);
+    setExistingLog(null);
+    setAsNewVisit(false);
     onClose();
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!rating || !body.trim()) return;
-    await mutate({ spotId: spot.id, visitedAt, rating, body, tags });
+    await mutate({ spotId: spot.id, existingLog, asNewVisit, visitedAt, rating, body, tags });
     setSubmitted(true);
     onReviewed?.();
   }
+
+  const attachingToExisting = Boolean(existingLog) && !asNewVisit;
 
   return (
     <Modal open={open} onClose={resetAndClose} labelledBy="write-review-heading">
@@ -67,16 +99,36 @@ export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
             Write a review for <em>{spot.name}</em>
           </h2>
 
-          <label className="write-review-form__field">
-            <span>Date</span>
-            <input
-              type="date"
-              value={visitedAt}
-              max={today()}
-              onChange={(e) => setVisitedAt(e.target.value)}
-              required
-            />
-          </label>
+          {existingLog && (
+            <div className="write-review-form__existing-visit">
+              <p>
+                You already logged a visit here on {formatLogDate(existingLog.visited_at)} (
+                {existingLog.rating} forks). This review will attach to that visit unless you
+                say otherwise.
+              </p>
+              <label className="write-review-form__toggle">
+                <input
+                  type="checkbox"
+                  checked={asNewVisit}
+                  onChange={(e) => setAsNewVisit(e.target.checked)}
+                />
+                <span>This was a new visit</span>
+              </label>
+            </div>
+          )}
+
+          {!attachingToExisting && (
+            <label className="write-review-form__field">
+              <span>Date</span>
+              <input
+                type="date"
+                value={visitedAt}
+                max={today()}
+                onChange={(e) => setVisitedAt(e.target.value)}
+                required
+              />
+            </label>
+          )}
 
           <div className="write-review-form__field">
             <span>

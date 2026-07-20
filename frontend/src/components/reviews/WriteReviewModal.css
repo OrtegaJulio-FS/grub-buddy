@@ -47,6 +47,39 @@
   border-color: var(--color-secondary);
 }
 
+.write-review-form__existing-visit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-sage) 10%, transparent);
+}
+
+.write-review-form__existing-visit p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.write-review-form__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.write-review-form__toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-secondary);
+}
+
 .write-review-form__error {
   color: var(--color-accent);
   font-size: 0.85rem;
