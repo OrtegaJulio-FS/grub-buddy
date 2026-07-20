@@ -15,7 +15,10 @@ async function create({ name, category, address, lat, lng, coverPhotoUrl, create
 // cheaper at scale and the single source of truth for "what's this spot
 // rated". AVG/COUNT are cast to float/int because node-pg otherwise returns
 // numeric/bigint as strings.
-async function findAll({ city, category } = {}) {
+//
+// minRating filters on the aggregate itself, so it has to be a HAVING clause
+// (applied after GROUP BY) rather than a WHERE condition on the raw rows.
+async function findAll({ city, category, minRating, search } = {}) {
   const conditions = [];
   const values = [];
 
@@ -27,8 +30,22 @@ async function findAll({ city, category } = {}) {
     values.push(category);
     conditions.push(`spots.category = $${values.length}`);
   }
+  if (search) {
+    values.push(`%${search}%`);
+    conditions.push(
+      `(spots.name ILIKE $${values.length} OR spots.address ILIKE $${values.length} OR spots.city ILIKE $${values.length})`
+    );
+  }
+
+  const havingConditions = [];
+  if (minRating !== undefined) {
+    values.push(minRating);
+    havingConditions.push(`AVG(logs.rating) >= $${values.length}`);
+  }
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const havingClause = havingConditions.length ? `HAVING ${havingConditions.join(' AND ')}` : '';
+
   const { rows } = await pool.query(
     `SELECT
        spots.*,
@@ -38,6 +55,7 @@ async function findAll({ city, category } = {}) {
      LEFT JOIN logs ON logs.spot_id = spots.id
      ${whereClause}
      GROUP BY spots.id
+     ${havingClause}
      ORDER BY spots.created_at DESC`,
     values
   );

@@ -2,8 +2,17 @@ const spotModel = require('../models/spot.model');
 
 async function list(req, res, next) {
   try {
-    const { city, category } = req.query;
-    const spots = await spotModel.findAll({ city, category });
+    const { city, category, search } = req.query;
+
+    let minRating;
+    if (req.query.minRating !== undefined) {
+      minRating = Number(req.query.minRating);
+      if (Number.isNaN(minRating) || minRating < 1 || minRating > 5) {
+        return res.status(400).json({ error: 'minRating must be a number between 1 and 5' });
+      }
+    }
+
+    const spots = await spotModel.findAll({ city, category, minRating, search });
     res.json(spots);
   } catch (err) {
     next(err);
