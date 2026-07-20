@@ -41,6 +41,42 @@ async function findById(id) {
   return rows[0];
 }
 
+// Creates the visit log and its review together in a single transaction -
+// used when the reviewer doesn't already have a log for this spot to attach
+// to. A single client (not the shared pool) is required so both inserts
+// share one BEGIN/COMMIT; if the review insert fails, the log is rolled
+// back too, rather than leaving an orphan visit behind.
+async function createWithLog({ userId, spotId, visitedAt, rating, quickNote, body, tags }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows: logRows } = await client.query(
+      `INSERT INTO logs (user_id, spot_id, visited_at, rating, quick_note)
+       VALUES ($1, $2, COALESCE($3, now()), $4, $5)
+       RETURNING *`,
+      [userId, spotId, visitedAt || null, rating, quickNote || null]
+    );
+    const log = logRows[0];
+
+    const { rows: reviewRows } = await client.query(
+      `INSERT INTO reviews (log_id, body, rating, tags)
+       VALUES ($1, $2, $3, COALESCE($4::text[], '{}'::text[]))
+       RETURNING *`,
+      [log.id, body, rating, tags || null]
+    );
+    const review = reviewRows[0];
+
+    await client.query('COMMIT');
+    return { log, review };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 // log_id is UNIQUE (one review per log) - correcting a review is always this
 // UPDATE, never a second INSERT for the same log.
 async function update(id, { body, rating, tags }) {
@@ -56,4 +92,4 @@ async function update(id, { body, rating, tags }) {
   return rows[0];
 }
 
-module.exports = { create, findBySpotId, findById, update };
+module.exports = { create, createWithLog, findBySpotId, findById, update };
