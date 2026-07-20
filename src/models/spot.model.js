@@ -62,6 +62,28 @@ async function findAll({ city, category, minRating, search } = {}) {
   return rows;
 }
 
+// Spots with the most logs in the last 7 days. average_rating/log_count
+// stay all-time (same as everywhere else spots are displayed) - only the
+// ranking/limit is based on recent_log_count, via a FILTER'd COUNT rather
+// than a second query.
+async function findTrending(limit = 10) {
+  const { rows } = await pool.query(
+    `SELECT
+       spots.*,
+       AVG(logs.rating)::float AS average_rating,
+       COUNT(logs.id)::int AS log_count,
+       COUNT(logs.id) FILTER (WHERE logs.visited_at >= now() - interval '7 days')::int AS recent_log_count
+     FROM spots
+     LEFT JOIN logs ON logs.spot_id = spots.id
+     GROUP BY spots.id
+     HAVING COUNT(logs.id) FILTER (WHERE logs.visited_at >= now() - interval '7 days') > 0
+     ORDER BY recent_log_count DESC
+     LIMIT $1`,
+    [limit]
+  );
+  return rows;
+}
+
 async function findById(id) {
   const { rows } = await pool.query(
     `SELECT
@@ -114,4 +136,4 @@ async function findOverlap(userId, otherUserId) {
   return rows;
 }
 
-module.exports = { create, findAll, findById, update, remove, findOverlap };
+module.exports = { create, findAll, findById, update, remove, findOverlap, findTrending };

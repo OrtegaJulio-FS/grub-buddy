@@ -5,6 +5,8 @@ const reviewsController = require('../controllers/reviews.controller');
 const router = express.Router();
 
 router.get('/', spotsController.list);
+// Must come before /:id or Express would match "trending" as the :id param.
+router.get('/trending', spotsController.trending);
 router.get('/:id', spotsController.getOne);
 router.post('/', spotsController.create);
 router.put('/:id', spotsController.update);

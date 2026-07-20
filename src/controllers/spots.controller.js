@@ -19,6 +19,16 @@ async function list(req, res, next) {
   }
 }
 
+async function trending(req, res, next) {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    const spots = await spotModel.findTrending(limit);
+    res.json(spots);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getOne(req, res, next) {
   try {
     const spot = await spotModel.findById(req.params.id);
@@ -80,4 +90,4 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, getOne, create, update, remove };
+module.exports = { list, getOne, create, update, remove, trending };
