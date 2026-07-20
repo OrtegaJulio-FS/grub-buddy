@@ -1,6 +1,7 @@
 const express = require('express');
 const usersController = require('../controllers/users.controller');
 const followsController = require('../controllers/follows.controller');
+const listsController = require('../controllers/lists.controller');
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.get('/:id/followers', followsController.listFollowers);
 router.get('/:id/following', followsController.listFollowing);
 router.get('/:id/is-following/:targetId', followsController.checkIsFollowing);
 router.get('/:id/overlap/:otherId', usersController.overlap);
+router.get('/:id/lists', listsController.listForUser);
 
 module.exports = router;
