@@ -8,6 +8,7 @@ import { Button } from '../components/common/Button';
 import { LogVisitModal } from '../components/logs/LogVisitModal';
 import { ReviewsList } from '../components/reviews/ReviewsList';
 import { WriteReviewModal } from '../components/reviews/WriteReviewModal';
+import { AddToListModal } from '../components/lists/AddToListModal';
 import { useSpot } from '../hooks/useSpot';
 import { useLoggedByMe } from '../hooks/useLoggedByMe';
 import { useReviews } from '../hooks/useReviews';
@@ -23,6 +24,7 @@ export function SpotPage() {
   const { following } = useFollowing(CURRENT_USER_ID);
   const [modalOpen, setModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [addToListModalOpen, setAddToListModalOpen] = useState(false);
 
   // "Friends" = the current user themself plus everyone they follow - used to
   // sort reviews friends-first on the Spot Page.
@@ -100,9 +102,14 @@ export function SpotPage() {
 
             <div className="spot-hero__ratings-row">
               <ForkRating average={spot.average_rating} count={spot.log_count} size="lg" />
-              <Button variant="primary" size="lg" onClick={() => setModalOpen(true)}>
-                Log a visit
-              </Button>
+              <div className="spot-hero__actions">
+                <Button variant="ghost" size="lg" onClick={() => setAddToListModalOpen(true)}>
+                  Add to list
+                </Button>
+                <Button variant="primary" size="lg" onClick={() => setModalOpen(true)}>
+                  Log a visit
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -134,6 +141,12 @@ export function SpotPage() {
         onClose={() => setReviewModalOpen(false)}
         spot={spot}
         onReviewed={handleReviewed}
+      />
+
+      <AddToListModal
+        open={addToListModalOpen}
+        onClose={() => setAddToListModalOpen(false)}
+        spot={spot}
       />
     </>
   );
