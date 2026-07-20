@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
 
 const fakeUser = require('./middleware/fakeUser');
 const usersRoutes = require('./routes/users.routes');
@@ -15,6 +16,9 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
+// Pure JSON API - no HTML/scripts served here, so helmet's defaults (CSP,
+// no-sniff, frameguard, etc) apply cleanly with no custom directives needed.
+app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
