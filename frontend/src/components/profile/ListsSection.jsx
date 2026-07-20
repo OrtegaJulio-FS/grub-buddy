@@ -1,14 +1,19 @@
+import { Button } from '../common/Button';
 import './ListsSection.css';
 
-// No /lists backend yet (the `lists`/`list_items` tables exist but aren't
-// exposed through any route), so this is a real empty state rather than
-// fake list chips - swap in actual data once the endpoints exist.
-export function ListsSection() {
+export function ListsSection({ onCreateClick }) {
   return (
     <section className="lists-section">
-      <h2 className="lists-section__title">Lists</h2>
+      <div className="lists-section__header">
+        <h2 className="lists-section__title">Lists</h2>
+        {onCreateClick && (
+          <Button variant="ghost" size="sm" onClick={onCreateClick}>
+            + New list
+          </Button>
+        )}
+      </div>
       <div className="lists-section__placeholder">
-        <p>No lists yet — this is coming in a future update.</p>
+        <p>No lists yet — create your first one to start curating spots.</p>
       </div>
     </section>
   );

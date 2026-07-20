@@ -1,7 +1,16 @@
+.lists-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
 .lists-section__title {
   font-size: 1.6rem;
   font-style: italic;
-  margin-bottom: var(--space-4);
+  margin: 0;
 }
 
 .lists-section__placeholder {

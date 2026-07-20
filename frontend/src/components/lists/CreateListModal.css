@@ -1,0 +1,64 @@
+.create-list-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.create-list-form__title {
+  font-size: 1.4rem;
+  padding-right: var(--space-6);
+}
+
+.create-list-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.create-list-form__field input,
+.create-list-form__field textarea {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.create-list-form__field input:focus,
+.create-list-form__field textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+.create-list-form__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.create-list-form__toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-secondary);
+}
+
+.create-list-form__error {
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.create-list-form__submit {
+  margin-top: var(--space-2);
+  width: 100%;
+}

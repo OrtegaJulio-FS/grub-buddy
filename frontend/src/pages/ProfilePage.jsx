@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { NavBar } from '../components/layout/NavBar';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
@@ -6,12 +6,14 @@ import { TopSpots } from '../components/profile/TopSpots';
 import { ListsSection } from '../components/profile/ListsSection';
 import { DiaryList } from '../components/profile/DiaryList';
 import { FollowButton } from '../components/profile/FollowButton';
+import { CreateListModal } from '../components/lists/CreateListModal';
 import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
 import { useSpots } from '../hooks/useSpots';
 import { useFollowers } from '../hooks/useFollowers';
 import { useFollowing } from '../hooks/useFollowing';
 import { useIsFollowing } from '../hooks/useIsFollowing';
+import { useUserLists } from '../hooks/useUserLists';
 import { CURRENT_USER_ID } from '../lib/currentUser';
 import './ProfilePage.css';
 
@@ -24,6 +26,8 @@ export function ProfilePage() {
   const { followers, refetch: refetchFollowers } = useFollowers(userId);
   const { following } = useFollowing(userId);
   const { isFollowing, refetch: refetchIsFollowing } = useIsFollowing(userId);
+  const { lists, refetch: refetchLists } = useUserLists(userId);
+  const [createListModalOpen, setCreateListModalOpen] = useState(false);
 
   function handleFollowChange() {
     refetchFollowers();
@@ -73,10 +77,9 @@ export function ProfilePage() {
     );
   }
 
-  // listCount is still 0 until /lists exists - followers/following are real now.
   const stats = {
     logCount: logs.length,
-    listCount: 0,
+    listCount: lists.length,
     followers: followers.length,
     following: following.length,
   };
@@ -95,9 +98,15 @@ export function ProfilePage() {
           }
         />
         <TopSpots ranked={rankedSpots} spotsById={spotsById} />
-        <ListsSection />
+        <ListsSection onCreateClick={isOwnProfile ? () => setCreateListModalOpen(true) : undefined} />
         <DiaryList logs={logs} spotsById={spotsById} />
       </main>
+
+      <CreateListModal
+        open={createListModalOpen}
+        onClose={() => setCreateListModalOpen(false)}
+        onCreated={refetchLists}
+      />
     </>
   );
 }
