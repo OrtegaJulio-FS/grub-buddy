@@ -11,6 +11,7 @@ what people they follow are up to.
 - PostgreSQL (via `pg`, raw SQL - no ORM)
 - JWT auth (`jsonwebtoken` + `bcrypt`), wired up separately from the core routes
 - Cloudinary for image uploads (spot photos, avatars)
+- Jest + Supertest for tests, against a real Postgres test database
 
 ## Project structure
 
@@ -19,12 +20,20 @@ migrations/        # node-pg-migrate migrations (versioned schema changes)
 db/
   seed.sql/seed.js  # seeds the fake user (id=1) plus 3 more users with
                     # logs/reviews/follows between them, for real social data
+tests/              # jest + supertest, against a real (separate) test database
+  globalSetup.js    # creates + migrates the test database once per run
+  setup-env.js      # loads .env.test before any test file's requires
+  db.js             # resetDb() - truncate + reseed baseline users
+  *.test.js
 src/
   config/          # pg Pool, Cloudinary client
   middleware/
     fakeUser.js    # hardcoded user, used by every route below for now
     auth.js        # real JWT middleware (requireAuth) - not wired in yet
     upload.js       # multer (in-memory) for image uploads
+  utils/
+    ownership.js   # isOwnedBy() - shared ownership check for controllers
+    validation.js  # shared input validation (email, pagination, dates, ratings)
   models/          # raw SQL queries per table
   controllers/     # request handling, one per resource
   routes/          # route -> controller wiring
@@ -92,6 +101,29 @@ src/
    ```
 
    Server listens on `http://localhost:3000` by default (`PORT` in `.env`).
+
+## Running tests
+
+```bash
+cp .env.test.example .env.test   # separate DB so tests can freely TRUNCATE
+npm test
+```
+
+Jest + Supertest against a real Postgres database (`grubbuds_test` by
+default - same Postgres instance from `docker compose up -d` is fine, it's
+just a different database name so test runs never touch your dev data).
+`tests/globalSetup.js` creates and migrates that database automatically the
+first time; `tests/db.js`'s `resetDb()` truncates every table and reseeds
+two baseline users before each test, so tests are isolated and order
+doesn't matter (except within `tests/auth.test.js`, where the rate-limit
+test intentionally runs last since it exhausts the limiter).
+
+Coverage priorities: the core loop (spot → log → server-side aggregate
+correctness), every ownership check (owner succeeds, non-owner 403), auth
+(signup/login, bad password, rate limiting), the transactional log+review
+endpoint including rollback on a forced mid-transaction failure, and
+validation rejections (bad ratings, non-numeric pagination params, future
+`visited_at`).
 
 ## API overview
 
