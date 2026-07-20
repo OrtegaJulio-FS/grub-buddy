@@ -1,6 +1,7 @@
 const reviewModel = require('../models/review.model');
 const logModel = require('../models/log.model');
 const { isOwnedBy } = require('../utils/ownership');
+const { isFutureDate } = require('../utils/validation');
 
 async function listBySpot(req, res, next) {
   try {
@@ -48,6 +49,9 @@ async function create(req, res, next) {
     if (spotId) {
       if (!isValidRating(rating)) {
         return res.status(400).json({ error: 'rating is required and must be an integer between 1 and 5' });
+      }
+      if (visitedAt && isFutureDate(visitedAt)) {
+        return res.status(400).json({ error: 'visitedAt cannot be in the future' });
       }
 
       const { review } = await reviewModel.createWithLog({

@@ -16,4 +16,8 @@ function parsePositiveInt(value, fallback) {
   return parsed;
 }
 
-module.exports = { isValidEmail, parsePositiveInt };
+function isFutureDate(dateString) {
+  return new Date(dateString).getTime() > Date.now();
+}
+
+module.exports = { isValidEmail, parsePositiveInt, isFutureDate };

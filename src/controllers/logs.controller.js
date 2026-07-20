@@ -1,5 +1,6 @@
 const logModel = require('../models/log.model');
 const { isOwnedBy } = require('../utils/ownership');
+const { isFutureDate } = require('../utils/validation');
 
 async function list(req, res, next) {
   try {
@@ -30,6 +31,9 @@ async function create(req, res, next) {
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
     }
+    if (visitedAt && isFutureDate(visitedAt)) {
+      return res.status(400).json({ error: 'visitedAt cannot be in the future' });
+    }
     const log = await logModel.create({
       userId: req.user.id, // fake user for now, see src/middleware/fakeUser.js
       spotId,
@@ -55,6 +59,9 @@ async function update(req, res, next) {
     const { rating, quickNote, photoUrl, visitedAt } = req.body;
     if (rating !== undefined && (!Number.isInteger(rating) || rating < 1 || rating > 5)) {
       return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
+    }
+    if (visitedAt && isFutureDate(visitedAt)) {
+      return res.status(400).json({ error: 'visitedAt cannot be in the future' });
     }
 
     const log = await logModel.update(req.params.id, { rating, quickNote, photoUrl, visitedAt });
