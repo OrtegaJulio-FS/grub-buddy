@@ -1,4 +1,5 @@
 const spotModel = require('../models/spot.model');
+const { parsePositiveInt } = require('../utils/validation');
 
 async function list(req, res, next) {
   try {
@@ -21,7 +22,10 @@ async function list(req, res, next) {
 
 async function trending(req, res, next) {
   try {
-    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    const limit = parsePositiveInt(req.query.limit, 10);
+    if (limit === null) {
+      return res.status(400).json({ error: 'limit must be a positive integer' });
+    }
     const spots = await spotModel.findTrending(limit);
     res.json(spots);
   } catch (err) {
