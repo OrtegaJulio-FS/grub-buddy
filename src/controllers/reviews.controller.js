@@ -36,8 +36,12 @@ async function create(req, res, next) {
     }
 
     if (logId) {
-      if (rating !== undefined && rating !== null && !isValidRating(rating)) {
-        return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
+      // reviews.rating is NOT NULL at the DB level (a review's rating is
+      // required, same as a log's) - require it here too rather than
+      // letting an omitted rating reach the DB and surface as a raw
+      // constraint-violation 500.
+      if (!isValidRating(rating)) {
+        return res.status(400).json({ error: 'rating is required and must be an integer between 1 and 5' });
       }
 
       const log = await logModel.findById(logId);
