@@ -16,6 +16,20 @@
   margin-top: var(--space-2);
 }
 
+.feed-page__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.feed-page__view-toggle {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 .feed-page__loading,
 .feed-page__error {
   color: var(--color-text-muted);

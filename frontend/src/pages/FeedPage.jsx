@@ -3,6 +3,8 @@ import { NavBar } from '../components/layout/NavBar';
 import { SegmentedSearchBar } from '../components/layout/SegmentedSearchBar';
 import { FilterPills } from '../components/layout/FilterPills';
 import { SpotGrid } from '../components/spots/SpotGrid';
+import { MapView } from '../components/map/MapView';
+import { Button } from '../components/common/Button';
 import { useSpots } from '../hooks/useSpots';
 import { useLoggedSpotIds } from '../hooks/useLoggedSpotIds';
 import { useActivity } from '../hooks/useActivity';
@@ -12,6 +14,7 @@ export function FeedPage() {
   const [city, setCity] = useState('');
   const [activePill, setActivePill] = useState(null);
   const [searchTab, setSearchTab] = useState('location');
+  const [viewMode, setViewMode] = useState('grid');
 
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
@@ -62,7 +65,17 @@ export function FeedPage() {
           <p className="feed-page__subhead">Fresh finds and local favorites, logged by real people.</p>
         </div>
 
-        <FilterPills active={activePill} onSelect={handlePillSelect} />
+        <div className="feed-page__toolbar">
+          <FilterPills active={activePill} onSelect={handlePillSelect} />
+          <div className="feed-page__view-toggle">
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('grid')}>
+              Grid
+            </Button>
+            <Button variant={viewMode === 'map' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('map')}>
+              Map
+            </Button>
+          </div>
+        </div>
 
         {spotsError && (
           <p className="feed-page__error">
@@ -72,6 +85,8 @@ export function FeedPage() {
 
         {loading && !spotsError ? (
           <p className="feed-page__loading">Loading spots...</p>
+        ) : viewMode === 'map' ? (
+          <MapView spots={sortedSpots} />
         ) : (
           <SpotGrid spots={sortedSpots} loggedSpotIds={loggedSpotIds} />
         )}

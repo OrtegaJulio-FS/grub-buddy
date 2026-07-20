@@ -1,0 +1,67 @@
+.map-view {
+  width: 100%;
+  height: min(60vh, 560px);
+  min-height: 320px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.map-view__placeholder {
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-8) var(--space-6);
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--color-sage) 8%, transparent);
+  text-align: center;
+}
+
+.map-view__placeholder p {
+  margin: 0;
+  max-width: 48ch;
+  margin-inline: auto;
+}
+
+.map-view__placeholder code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* Mapbox popups render outside React - styled as plain global classes to
+   match the design system rather than the library's default look. */
+.mapboxgl-popup-content {
+  font-family: var(--font-body);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.map-popup__name {
+  display: block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-bottom: var(--space-1);
+}
+
+.map-popup__name:hover {
+  text-decoration: underline;
+}
+
+.map-popup__meta {
+  text-transform: capitalize;
+  font-size: 0.78rem;
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+.map-popup__rating {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
