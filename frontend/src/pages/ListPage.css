@@ -1,0 +1,59 @@
+.list-page {
+  padding: var(--space-6) var(--space-5) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.list-page__status {
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.list-page__breadcrumb {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.list-page__breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.list-page__breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.list-page__title {
+  font-style: italic;
+  font-size: 2.2rem;
+}
+
+.list-page__owner {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.list-page__owner-link {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.list-page__owner-link:hover {
+  text-decoration: underline;
+}
+
+.list-page__description {
+  max-width: 60ch;
+  color: var(--color-text);
+}
+
+.list-page__count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
