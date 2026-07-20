@@ -6,6 +6,8 @@ import { TopSpots } from '../components/profile/TopSpots';
 import { ListsSection } from '../components/profile/ListsSection';
 import { DiaryList } from '../components/profile/DiaryList';
 import { FollowButton } from '../components/profile/FollowButton';
+import { EditProfileModal } from '../components/profile/EditProfileModal';
+import { Button } from '../components/common/Button';
 import { CreateListModal } from '../components/lists/CreateListModal';
 import { useUser } from '../hooks/useUser';
 import { useUserLogs } from '../hooks/useUserLogs';
@@ -20,7 +22,7 @@ import './ProfilePage.css';
 export function ProfilePage() {
   const { userId = CURRENT_USER_ID } = useParams();
   const isOwnProfile = String(userId) === String(CURRENT_USER_ID);
-  const { user, loading: userLoading, error: userError } = useUser(userId);
+  const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userId);
   const { logs } = useUserLogs(userId);
   const { spots } = useSpots();
   const { followers, refetch: refetchFollowers } = useFollowers(userId);
@@ -28,6 +30,7 @@ export function ProfilePage() {
   const { isFollowing, refetch: refetchIsFollowing } = useIsFollowing(userId);
   const { lists, refetch: refetchLists } = useUserLists(userId);
   const [createListModalOpen, setCreateListModalOpen] = useState(false);
+  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
 
   function handleFollowChange() {
     refetchFollowers();
@@ -59,7 +62,10 @@ export function ProfilePage() {
       .map((spot) => ({ spotId: String(spot.id), average: spot.average_rating, count: spot.log_count }));
   }, [logs, spotsById]);
 
-  if (userLoading) {
+  // Only block on the *initial* load - see the same fix on SpotPage for why
+  // (a background refetch, e.g. after saving profile edits, would otherwise
+  // unmount any open modal mid-interaction).
+  if (userLoading && !user) {
     return (
       <>
         <NavBar />
@@ -92,7 +98,11 @@ export function ProfilePage() {
           user={user}
           stats={stats}
           action={
-            !isOwnProfile && (
+            isOwnProfile ? (
+              <Button variant="ghost" size="md" onClick={() => setEditProfileModalOpen(true)}>
+                Edit profile
+              </Button>
+            ) : (
               <FollowButton targetUserId={userId} isFollowing={isFollowing} onChange={handleFollowChange} />
             )
           }
@@ -107,6 +117,15 @@ export function ProfilePage() {
         onClose={() => setCreateListModalOpen(false)}
         onCreated={refetchLists}
       />
+
+      {isOwnProfile && (
+        <EditProfileModal
+          open={editProfileModalOpen}
+          onClose={() => setEditProfileModalOpen(false)}
+          user={user}
+          onUpdated={refetchUser}
+        />
+      )}
     </>
   );
 }

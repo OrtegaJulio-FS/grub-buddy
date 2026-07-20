@@ -5,7 +5,7 @@ import './ProfileHeader.css';
 export function ProfileHeader({ user, stats, action }) {
   return (
     <section className="profile-header">
-      <Avatar name={user.name} size="lg" />
+      <Avatar name={user.name} src={user.avatar_url} size="lg" />
 
       <div className="profile-header__identity">
         <div className="profile-header__name-row">
