@@ -98,7 +98,7 @@ export function ProfilePage() {
           }
         />
         <TopSpots ranked={rankedSpots} spotsById={spotsById} />
-        <ListsSection onCreateClick={isOwnProfile ? () => setCreateListModalOpen(true) : undefined} />
+        <ListsSection lists={lists} onCreateClick={isOwnProfile ? () => setCreateListModalOpen(true) : undefined} />
         <DiaryList logs={logs} spotsById={spotsById} />
       </main>
 

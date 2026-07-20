@@ -24,3 +24,9 @@
 .lists-section__placeholder p {
   margin: 0;
 }
+
+.lists-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-4);
+}

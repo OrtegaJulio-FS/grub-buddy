@@ -1,7 +1,8 @@
 import { Button } from '../common/Button';
+import { ListCard } from '../lists/ListCard';
 import './ListsSection.css';
 
-export function ListsSection({ onCreateClick }) {
+export function ListsSection({ lists, onCreateClick }) {
   return (
     <section className="lists-section">
       <div className="lists-section__header">
@@ -12,9 +13,18 @@ export function ListsSection({ onCreateClick }) {
           </Button>
         )}
       </div>
-      <div className="lists-section__placeholder">
-        <p>No lists yet — create your first one to start curating spots.</p>
-      </div>
+
+      {lists.length === 0 ? (
+        <div className="lists-section__placeholder">
+          <p>No lists yet — create your first one to start curating spots.</p>
+        </div>
+      ) : (
+        <div className="lists-section__grid">
+          {lists.map((list) => (
+            <ListCard key={list.id} list={list} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
