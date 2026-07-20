@@ -8,6 +8,10 @@ export function getSpot(id) {
   return api.get(`/spots/${id}`);
 }
 
+export function listTrendingSpots(limit) {
+  return api.get('/spots/trending', { limit });
+}
+
 export function createSpot(spot) {
   return api.post('/spots', spot);
 }

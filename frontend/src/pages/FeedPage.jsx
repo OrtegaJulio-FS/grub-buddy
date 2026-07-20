@@ -7,6 +7,7 @@ import { SpotGrid } from '../components/spots/SpotGrid';
 import { MapView } from '../components/map/MapView';
 import { Button } from '../components/common/Button';
 import { useSpots } from '../hooks/useSpots';
+import { useTrendingSpots } from '../hooks/useTrendingSpots';
 import { useLoggedSpotIds } from '../hooks/useLoggedSpotIds';
 import { useActivity } from '../hooks/useActivity';
 import './FeedPage.css';
@@ -22,6 +23,10 @@ export function FeedPage() {
   const category = activePill && activePill !== 'trending' ? activePill : '';
 
   const { spots, loading: spotsLoading, error: spotsError } = useSpots({ city, category, minRating, search });
+  // Real "spots with the most logs in the last 7 days" from the backend -
+  // fetched regardless of whether the Trending pill is active (cheap, and
+  // keeps this a plain hook call) but only used when it is.
+  const { spots: trendingSpots, loading: trendingLoading } = useTrendingSpots();
   const { loggedSpotIds, loading: logsLoading } = useLoggedSpotIds();
   const { activity } = useActivity();
 
@@ -34,10 +39,9 @@ export function FeedPage() {
   }, [activity]);
 
   const sortedSpots = useMemo(() => {
-    const base = searchTab === 'friends' ? spots.filter((spot) => friendsLoggedSpotIds.has(String(spot.id))) : spots;
-    if (activePill !== 'trending') return base;
-    return [...base].sort((a, b) => (b.log_count || 0) - (a.log_count || 0));
-  }, [spots, activePill, searchTab, friendsLoggedSpotIds]);
+    if (activePill === 'trending') return trendingSpots;
+    return searchTab === 'friends' ? spots.filter((spot) => friendsLoggedSpotIds.has(String(spot.id))) : spots;
+  }, [spots, trendingSpots, activePill, searchTab, friendsLoggedSpotIds]);
 
   function handleCategoryChange(value) {
     setActivePill(value || null);
@@ -47,7 +51,7 @@ export function FeedPage() {
     setActivePill((current) => (current === key ? null : key));
   }
 
-  const loading = spotsLoading || logsLoading;
+  const loading = spotsLoading || logsLoading || (activePill === 'trending' && trendingLoading);
 
   return (
     <>
