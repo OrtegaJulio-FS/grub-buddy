@@ -4,11 +4,12 @@ import { Button } from '../common/Button';
 import { CreateListModal } from './CreateListModal';
 import { getList, addListItem, removeListItem } from '../../api/lists';
 import { useUserLists } from '../../hooks/useUserLists';
-import { CURRENT_USER_ID } from '../../lib/currentUser';
+import { useAuth } from '../../hooks/useAuth';
 import './AddToListModal.css';
 
 export function AddToListModal({ open, onClose, spot }) {
-  const { lists, loading: listsLoading, refetch: refetchLists } = useUserLists(CURRENT_USER_ID);
+  const { user } = useAuth();
+  const { lists, loading: listsLoading, refetch: refetchLists } = useUserLists(user?.id);
   const [memberListIds, setMemberListIds] = useState(new Set());
   const [checking, setChecking] = useState(false);
   const [pendingListId, setPendingListId] = useState(null);

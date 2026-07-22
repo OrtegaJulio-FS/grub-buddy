@@ -16,12 +16,13 @@ import { useFollowers } from '../hooks/useFollowers';
 import { useFollowing } from '../hooks/useFollowing';
 import { useIsFollowing } from '../hooks/useIsFollowing';
 import { useUserLists } from '../hooks/useUserLists';
-import { CURRENT_USER_ID } from '../lib/currentUser';
+import { useAuth } from '../hooks/useAuth';
 import './ProfilePage.css';
 
 export function ProfilePage() {
-  const { userId = CURRENT_USER_ID } = useParams();
-  const isOwnProfile = String(userId) === String(CURRENT_USER_ID);
+  const { user: authUser } = useAuth();
+  const { userId = authUser?.id } = useParams();
+  const isOwnProfile = String(userId) === String(authUser?.id);
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userId);
   const { logs } = useUserLogs(userId);
   // limit: 100 since this builds a lookup map (Top Spots, Diary thumbnails)
@@ -47,10 +48,9 @@ export function ProfilePage() {
   }, [spots]);
 
   // Ranks by each spot's server-side average_rating/log_count (GET /spots),
-  // restricted to spots this user has actually logged. With only the one
-  // fake user right now, "this spot's average" and "my average" are the same
-  // number - once real multi-user auth exists, this should switch to a
-  // per-user aggregate instead of the spot-wide one.
+  // restricted to spots this user has actually logged. That average is the
+  // spot-wide one (everyone's ratings), not this user's own rating - revisit
+  // if Top Spots should rank by the user's personal rating instead.
   const rankedSpots = useMemo(() => {
     const visitedSpotIds = new Set(logs.map((log) => String(log.spot_id)));
     return Array.from(visitedSpotIds)

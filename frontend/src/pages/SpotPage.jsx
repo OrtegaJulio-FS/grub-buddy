@@ -13,26 +13,27 @@ import { useSpot } from '../hooks/useSpot';
 import { useLoggedByMe } from '../hooks/useLoggedByMe';
 import { useReviews } from '../hooks/useReviews';
 import { useFollowing } from '../hooks/useFollowing';
-import { CURRENT_USER_ID } from '../lib/currentUser';
+import { useAuth } from '../hooks/useAuth';
 import './SpotPage.css';
 
 export function SpotPage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
   const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
   const { reviews, loading: reviewsLoading, refetch: refetchReviews } = useReviews(id);
-  const { following } = useFollowing(CURRENT_USER_ID);
+  const { following } = useFollowing(user?.id);
   const [modalOpen, setModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [addToListModalOpen, setAddToListModalOpen] = useState(false);
 
-  // "Friends" = the current user themself plus everyone they follow - used to
-  // sort reviews friends-first on the Spot Page.
+  // "Friends" = the logged-in user themself plus everyone they follow - used
+  // to sort reviews friends-first on the Spot Page.
   const friendIds = useMemo(() => {
-    const set = new Set([String(CURRENT_USER_ID)]);
-    for (const user of following) set.add(String(user.id));
+    const set = new Set(user ? [String(user.id)] : []);
+    for (const followed of following) set.add(String(followed.id));
     return set;
-  }, [following]);
+  }, [user, following]);
 
   function handleLogged() {
     refetchSpot();

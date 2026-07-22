@@ -7,7 +7,7 @@ import { TagPicker } from './TagPicker';
 import { listLogs, updateLog } from '../../api/logs';
 import { createReview } from '../../api/reviews';
 import { useMutation } from '../../hooks/useAsync';
-import { CURRENT_USER_ID } from '../../lib/currentUser';
+import { useAuth } from '../../hooks/useAuth';
 import { formatLogDate } from '../../lib/format';
 import './WriteReviewModal.css';
 
@@ -32,6 +32,7 @@ async function submitReview({ spotId, existingLog, asNewVisit, visitedAt, rating
 }
 
 export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
+  const { user } = useAuth();
   const [visitedAt, setVisitedAt] = useState(today);
   const [rating, setRating] = useState(null);
   const [body, setBody] = useState('');
@@ -42,9 +43,9 @@ export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
   const { loading, error, mutate } = useMutation(submitReview);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !user) return;
     let cancelled = false;
-    listLogs({ spotId: spot.id, userId: CURRENT_USER_ID }).then((logs) => {
+    listLogs({ spotId: spot.id, userId: user.id }).then((logs) => {
       if (cancelled) return;
       if (logs.length > 0) {
         const log = mostRecent(logs);
@@ -55,7 +56,7 @@ export function WriteReviewModal({ open, onClose, spot, onReviewed }) {
     return () => {
       cancelled = true;
     };
-  }, [open, spot.id]);
+  }, [open, spot.id, user]);
 
   function resetAndClose() {
     setVisitedAt(today());
