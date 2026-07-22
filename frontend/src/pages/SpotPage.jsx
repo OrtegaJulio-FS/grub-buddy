@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { NavBar } from '../components/layout/NavBar';
 import { ForkRating } from '../components/spots/ForkRating';
 import { VisitStamp } from '../components/spots/VisitStamp';
@@ -18,6 +18,8 @@ import './SpotPage.css';
 
 export function SpotPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { spot, loading: spotLoading, error: spotError, refetch: refetchSpot } = useSpot(id);
   const { loggedByMe, refetch: refetchLoggedByMe } = useLoggedByMe(id);
@@ -34,6 +36,14 @@ export function SpotPage() {
     for (const followed of following) set.add(String(followed.id));
     return set;
   }, [user, following]);
+
+  function handleLogVisitClick() {
+    if (!user) {
+      navigate('/login', { state: { from: location, message: 'Sign in to log a visit.' } });
+      return;
+    }
+    setModalOpen(true);
+  }
 
   function handleLogged() {
     refetchSpot();
@@ -107,7 +117,7 @@ export function SpotPage() {
                 <Button variant="ghost" size="lg" onClick={() => setAddToListModalOpen(true)}>
                   Add to list
                 </Button>
-                <Button variant="primary" size="lg" onClick={() => setModalOpen(true)}>
+                <Button variant="primary" size="lg" onClick={handleLogVisitClick}>
                   Log a visit
                 </Button>
               </div>

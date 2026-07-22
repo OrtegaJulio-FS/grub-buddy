@@ -28,7 +28,7 @@ export function LoginPage() {
           Grub<em>buds</em>
         </Link>
         <h1 className="auth-form__title">Welcome back</h1>
-        <p className="auth-form__subtitle">Log in to keep track of your spots.</p>
+        <p className="auth-form__subtitle">{location.state?.message || 'Log in to keep track of your spots.'}</p>
 
         <label className="auth-form__field">
           <span>Email</span>

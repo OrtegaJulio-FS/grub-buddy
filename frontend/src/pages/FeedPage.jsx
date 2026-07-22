@@ -10,9 +10,11 @@ import { useSpots } from '../hooks/useSpots';
 import { useTrendingSpots } from '../hooks/useTrendingSpots';
 import { useLoggedSpotIds } from '../hooks/useLoggedSpotIds';
 import { useActivity } from '../hooks/useActivity';
+import { useAuth } from '../hooks/useAuth';
 import './FeedPage.css';
 
 export function FeedPage() {
+  const { user } = useAuth();
   const [city, setCity] = useState('');
   const [search, setSearch] = useState('');
   const [minRating, setMinRating] = useState(undefined);
@@ -83,6 +85,7 @@ export function FeedPage() {
           onCityChange={setCity}
           onCategoryChange={handleCategoryChange}
           onSearchChange={setSearch}
+          disabledKeys={user ? [] : ['friends']}
         />
       </NavBar>
 

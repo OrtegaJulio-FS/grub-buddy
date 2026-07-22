@@ -35,6 +35,15 @@
   color: var(--color-butter-cream);
 }
 
+.search-bar__tab:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+.search-bar__tab:disabled:hover {
+  color: var(--color-border);
+}
+
 .search-bar__input {
   flex: 1;
   border: none;

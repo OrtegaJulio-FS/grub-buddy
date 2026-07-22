@@ -21,6 +21,7 @@ export function SegmentedSearchBar({
   onCityChange,
   onCategoryChange,
   onSearchChange,
+  disabledKeys = [],
 }) {
   const segment = SEGMENTS.find((s) => s.key === active);
   const isFriends = active === 'friends';
@@ -36,18 +37,23 @@ export function SegmentedSearchBar({
   return (
     <div className="search-bar">
       <div className="search-bar__tabs" role="tablist" aria-label="Search by">
-        {SEGMENTS.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            role="tab"
-            aria-selected={active === s.key}
-            className={`search-bar__tab ${active === s.key ? 'search-bar__tab--active' : ''}`}
-            onClick={() => onActiveChange(s.key)}
-          >
-            {s.label}
-          </button>
-        ))}
+        {SEGMENTS.map((s) => {
+          const isDisabled = disabledKeys.includes(s.key);
+          return (
+            <button
+              key={s.key}
+              type="button"
+              role="tab"
+              aria-selected={active === s.key}
+              disabled={isDisabled}
+              title={isDisabled ? 'Sign in to see spots your friends have logged' : undefined}
+              className={`search-bar__tab ${active === s.key ? 'search-bar__tab--active' : ''}`}
+              onClick={() => onActiveChange(s.key)}
+            >
+              {s.label}
+            </button>
+          );
+        })}
       </div>
       <input
         className="search-bar__input"
