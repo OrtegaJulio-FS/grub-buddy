@@ -22,6 +22,7 @@ async function request(path, { method = 'GET', body, params } = {}) {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: 'include',
   });
 
   if (res.status === 204) return null;
