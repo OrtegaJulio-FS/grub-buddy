@@ -37,12 +37,27 @@ export function SpotPage() {
     return set;
   }, [user, following]);
 
-  function handleLogVisitClick() {
+  // Redirects anonymous visitors to /login (with a return path back here and
+  // an action-specific message) instead of opening a modal that would just
+  // silently 401 on submit.
+  function requireLogin(message, openModal) {
     if (!user) {
-      navigate('/login', { state: { from: location, message: 'Sign in to log a visit.' } });
+      navigate('/login', { state: { from: location, message } });
       return;
     }
-    setModalOpen(true);
+    openModal();
+  }
+
+  function handleLogVisitClick() {
+    requireLogin('Sign in to log a visit.', () => setModalOpen(true));
+  }
+
+  function handleWriteReviewClick() {
+    requireLogin('Sign in to write a review.', () => setReviewModalOpen(true));
+  }
+
+  function handleAddToListClick() {
+    requireLogin('Sign in to add to a list.', () => setAddToListModalOpen(true));
   }
 
   function handleLogged() {
@@ -114,7 +129,7 @@ export function SpotPage() {
             <div className="spot-hero__ratings-row">
               <ForkRating average={spot.average_rating} count={spot.log_count} size="lg" />
               <div className="spot-hero__actions">
-                <Button variant="ghost" size="lg" onClick={() => setAddToListModalOpen(true)}>
+                <Button variant="ghost" size="lg" onClick={handleAddToListClick}>
                   Add to list
                 </Button>
                 <Button variant="primary" size="lg" onClick={handleLogVisitClick}>
@@ -128,7 +143,7 @@ export function SpotPage() {
         <section className="container reviews-section">
           <div className="reviews-section__header">
             <h2 className="reviews-section__title">Reviews</h2>
-            <Button variant="ghost" size="sm" onClick={() => setReviewModalOpen(true)}>
+            <Button variant="ghost" size="sm" onClick={handleWriteReviewClick}>
               Write a review
             </Button>
           </div>
