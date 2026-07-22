@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 
 const fakeUser = require('./middleware/fakeUser');
 const usersRoutes = require('./routes/users.routes');
@@ -17,26 +18,29 @@ const authRoutes = require('./routes/auth.routes');
 const app = express();
 
 // CORS_ORIGIN can be a single origin or a comma-separated list (e.g. a
-// staging + production frontend URL). Only defaults to "allow everyone" when
-// NODE_ENV isn't "production" - a production deploy with no CORS_ORIGIN set
-// fails closed (blocks all cross-origin requests) rather than silently
-// allowing any site to call the API.
+// staging + production frontend URL). Must be an explicit origin (never "*")
+// now that auth is a cookie - browsers reject wildcard origins on
+// credentialed requests outright. A production deploy with no CORS_ORIGIN
+// set fails closed (blocks all cross-origin requests) rather than silently
+// allowing any site to call the API; local dev falls back to Vite's default
+// port instead.
 function resolveCorsOrigin() {
   if (process.env.CORS_ORIGIN) {
     const origins = process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
     return origins.length === 1 ? origins[0] : origins;
   }
-  return process.env.NODE_ENV === 'production' ? false : '*';
+  return process.env.NODE_ENV === 'production' ? false : 'http://localhost:5173';
 }
 
 // Pure JSON API - no HTML/scripts served here, so helmet's defaults (CSP,
 // no-sniff, frameguard, etc) apply cleanly with no custom directives needed.
 app.use(helmet());
-app.use(cors({ origin: resolveCorsOrigin() }));
+app.use(cors({ origin: resolveCorsOrigin(), credentials: true }));
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

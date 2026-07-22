@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/user.model');
 const { signToken } = require('../utils/jwt');
+const { setAuthCookie, clearAuthCookie } = require('../utils/cookies');
 const { isValidEmail } = require('../utils/validation');
 
 async function signup(req, res, next) {
@@ -19,8 +20,9 @@ async function signup(req, res, next) {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await userModel.create({ name, email, passwordHash, bio, avatarUrl, city });
     const token = signToken({ sub: user.id, email: user.email });
+    setAuthCookie(res, token);
 
-    res.status(201).json({ token, user });
+    res.status(201).json({ user });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email already in use' });
@@ -48,11 +50,27 @@ async function login(req, res, next) {
 
     const token = signToken({ sub: user.id, email: user.email });
     delete user.password_hash;
+    setAuthCookie(res, token);
 
-    res.json({ token, user });
+    res.json({ user });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { signup, login };
+function logout(req, res) {
+  clearAuthCookie(res);
+  res.status(204).send();
+}
+
+async function me(req, res, next) {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { signup, login, logout, me };

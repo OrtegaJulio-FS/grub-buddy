@@ -1,15 +1,15 @@
-// Real JWT auth middleware. Not wired into /spots, /logs, or /users yet -
-// those currently run on middleware/fakeUser.js so the core loop can be tested
-// without a login flow. Once ready, swap fakeUser for requireAuth in
-// src/app.js (or per-router) and req.user will carry { id, email } from the token.
+// Real JWT auth middleware. Reads the token from the httpOnly cookie set by
+// /auth/signup and /auth/login (src/utils/cookies.js) rather than an
+// Authorization header, since the frontend never has JS-level access to the
+// token. req.user carries { id, email } from the token payload.
 const { verifyToken } = require('../utils/jwt');
+const { COOKIE_NAME } = require('../utils/cookies');
 
 function requireAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, token] = header.split(' ');
+  const token = req.cookies?.[COOKIE_NAME];
 
-  if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ error: 'Missing or malformed Authorization header' });
+  if (!token) {
+    return res.status(401).json({ error: 'Not authenticated' });
   }
 
   try {

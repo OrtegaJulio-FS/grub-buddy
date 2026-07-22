@@ -16,19 +16,28 @@ afterAll(async () => {
 // the limiter's in-memory counter starts clean for this file regardless of
 // what other test files do.
 
+function getCookie(res, name) {
+  const cookies = res.headers['set-cookie'] || [];
+  return cookies.find((c) => c.startsWith(`${name}=`));
+}
+
 describe('signup/login happy path', () => {
-  test('signup creates a user and returns a token', async () => {
+  test('signup sets an httpOnly cookie and returns the user, no token in body', async () => {
     const res = await request(app)
       .post('/auth/signup')
       .send({ name: 'Auth Test', email: 'authtest@example.com', password: 'validpassword123' });
 
     expect(res.status).toBe(201);
-    expect(res.body.token).toEqual(expect.any(String));
+    expect(res.body.token).toBeUndefined();
     expect(res.body.user.email).toBe('authtest@example.com');
     expect(res.body.user.password_hash).toBeUndefined();
+
+    const cookie = getCookie(res, 'token');
+    expect(cookie).toBeDefined();
+    expect(cookie).toMatch(/HttpOnly/i);
   });
 
-  test('login with correct credentials returns a token', async () => {
+  test('login with correct credentials sets the cookie, no token in body', async () => {
     await request(app)
       .post('/auth/signup')
       .send({ name: 'Auth Test', email: 'logintest@example.com', password: 'validpassword123' });
@@ -38,7 +47,38 @@ describe('signup/login happy path', () => {
       .send({ email: 'logintest@example.com', password: 'validpassword123' });
 
     expect(res.status).toBe(200);
-    expect(res.body.token).toEqual(expect.any(String));
+    expect(res.body.token).toBeUndefined();
+    expect(getCookie(res, 'token')).toBeDefined();
+  });
+
+  test('GET /auth/me returns the logged-in user after login', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/auth/signup')
+      .send({ name: 'Me Test', email: 'metest@example.com', password: 'validpassword123' });
+
+    const res = await agent.get('/auth/me');
+    expect(res.status).toBe(200);
+    expect(res.body.email).toBe('metest@example.com');
+    expect(res.body.password_hash).toBeUndefined();
+  });
+
+  test('GET /auth/me returns 401 without a session', async () => {
+    const res = await request(app).get('/auth/me');
+    expect(res.status).toBe(401);
+  });
+
+  test('POST /auth/logout clears the cookie and GET /auth/me then 401s', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/auth/signup')
+      .send({ name: 'Logout Test', email: 'logouttest@example.com', password: 'validpassword123' });
+
+    const logoutRes = await agent.post('/auth/logout');
+    expect(logoutRes.status).toBe(204);
+
+    const meRes = await agent.get('/auth/me');
+    expect(meRes.status).toBe(401);
   });
 });
 
