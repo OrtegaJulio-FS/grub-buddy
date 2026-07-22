@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 
 const requireAuth = require('./middleware/auth');
+const optionalAuth = require('./middleware/optionalAuth');
 const usersRoutes = require('./routes/users.routes');
 const spotsRoutes = require('./routes/spots.routes');
 const logsRoutes = require('./routes/logs.routes');
@@ -48,12 +49,15 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/auth', authRoutes);
 
 // Every route below requires a real logged-in user (middleware/auth.js's
-// requireAuth populates req.user from the httpOnly cookie). Authorization
-// (does req.user.id actually own this log/review/list?) is a separate
-// concern that lives in the controllers themselves (src/utils/ownership.js
-// and its callers), which already read req.user.id.
+// requireAuth populates req.user from the httpOnly cookie), except /spots -
+// browsing/searching spots and reading their reviews is intentionally public
+// (see middleware/optionalAuth.js and spots.routes.js, which applies
+// requireAuth per-route to the handful of spots endpoints that mutate data).
+// Authorization (does req.user.id actually own this log/review/list?) is a
+// separate concern that lives in the controllers themselves
+// (src/utils/ownership.js and its callers), which already read req.user.id.
 app.use('/users', requireAuth, usersRoutes);
-app.use('/spots', requireAuth, spotsRoutes);
+app.use('/spots', optionalAuth, spotsRoutes);
 app.use('/logs', requireAuth, logsRoutes);
 app.use('/reviews', requireAuth, reviewsRoutes);
 app.use('/follows', requireAuth, followsRoutes);

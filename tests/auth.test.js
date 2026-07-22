@@ -105,16 +105,28 @@ describe('bad credentials', () => {
   });
 });
 
-describe('protected routes require a session', () => {
-  test('GET /spots without a cookie returns 401', async () => {
+describe('spots browsing is public', () => {
+  test('GET /spots without a cookie returns 200 (anonymous browsing/search)', async () => {
     const res = await request(app).get('/spots');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
   });
 
-  test('GET /spots with a valid session succeeds', async () => {
+  test('GET /spots with a valid session still succeeds', async () => {
     const agent = agentAs(app, { id: 1, email: 'test@grubbuds.dev' });
     const res = await agent.get('/spots');
     expect(res.status).toBe(200);
+  });
+});
+
+describe('mutating routes still require a session', () => {
+  test('POST /spots without a cookie returns 401', async () => {
+    const res = await request(app).post('/spots').send({ name: 'Anonymous Spot' });
+    expect(res.status).toBe(401);
+  });
+
+  test('POST /logs without a cookie returns 401', async () => {
+    const res = await request(app).post('/logs').send({ spotId: 1, rating: 5 });
+    expect(res.status).toBe(401);
   });
 });
 
