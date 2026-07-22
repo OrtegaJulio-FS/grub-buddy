@@ -1,7 +1,8 @@
 const pool = require('../src/config/db');
 
-// Matches src/middleware/fakeUser.js's hardcoded id - every request in
-// these tests is attributed to this user, same as the real app today.
+// Baseline seeded user id, used with tests/helpers.js's agentAs() to make
+// authenticated requests as this user in tests that don't care about the
+// login flow itself.
 const FAKE_USER_ID = 1;
 // A second real user, for ownership tests (owns a resource, req still acts
 // as FAKE_USER_ID - so requests against this user's resources should 403).

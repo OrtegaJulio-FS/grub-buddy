@@ -1,8 +1,15 @@
--- Seeds the fake user used by src/middleware/fakeUser.js (id=1) so that logs/spots
--- created through the no-auth routes satisfy their foreign key constraints.
+-- Seeds the baseline dev user (id=1) so logs/spots created via the API have
+-- an owner to satisfy their foreign key constraints. password_hash below is
+-- bcrypt("password123", 10) - every seeded user shares this password so
+-- they're all real login-able accounts for testing (see README).
 INSERT INTO users (id, name, email, password_hash, city)
-VALUES (1, 'Test User', 'test@grubbuds.dev', 'not-a-real-hash', 'Des Moines')
+VALUES (1, 'Test User', 'test@grubbuds.dev', '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm', 'Des Moines')
 ON CONFLICT (id) DO NOTHING;
+
+-- Fixes up password_hash for a DB that was already seeded before this file
+-- switched from a placeholder hash to a real bcrypt("password123") one.
+UPDATE users SET password_hash = '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm'
+WHERE id = 1 AND password_hash != '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm';
 
 -- Keep the sequence in sync since we inserted an explicit id.
 SELECT setval('users_id_seq', (SELECT GREATEST(MAX(id), 1) FROM users));
@@ -38,16 +45,20 @@ WHERE NOT EXISTS (
   SELECT 1 FROM logs WHERE logs.user_id = 1 AND logs.spot_id = s.id AND logs.quick_note IS NOT DISTINCT FROM v.quick_note
 );
 
--- Social layer needs more than one real user to mean anything - the app
--- still only ever acts AS user id=1 (fakeUser middleware), but follows,
--- the activity feed, and friends-first sorting all need other real users
--- with their own logs/reviews to follow and see activity from.
+-- Social layer needs more than one real user to mean anything - follows, the
+-- activity feed, and friends-first sorting all need other real, login-able
+-- users to follow and see activity from (see README for their credentials).
 INSERT INTO users (id, name, email, password_hash, bio, city)
 VALUES
-  (2, 'Priya Nair', 'priya@grubbuds.dev', 'not-a-real-hash', 'Always hunting for the best cortado in town.', 'Des Moines'),
-  (3, 'Marcus Webb', 'marcus@grubbuds.dev', 'not-a-real-hash', 'Bar food connoisseur, professional brunch attendee.', 'Des Moines'),
-  (4, 'Dana Osei', 'dana@grubbuds.dev', 'not-a-real-hash', 'Bakery-first, always.', 'Des Moines')
+  (2, 'Priya Nair', 'priya@grubbuds.dev', '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm', 'Always hunting for the best cortado in town.', 'Des Moines'),
+  (3, 'Marcus Webb', 'marcus@grubbuds.dev', '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm', 'Bar food connoisseur, professional brunch attendee.', 'Des Moines'),
+  (4, 'Dana Osei', 'dana@grubbuds.dev', '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm', 'Bakery-first, always.', 'Des Moines')
 ON CONFLICT (id) DO NOTHING;
+
+-- Fixes up password_hash for a DB that was already seeded before this file
+-- switched from a placeholder hash to a real bcrypt("password123") one.
+UPDATE users SET password_hash = '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm'
+WHERE id IN (2, 3, 4) AND password_hash != '$2b$10$ijXpHFw2XnVD30Xm0fMtOONWCFfYZMl1b3dg/p14Fk2Vh8vWGsmfm';
 
 SELECT setval('users_id_seq', (SELECT GREATEST(MAX(id), 1) FROM users));
 
@@ -80,7 +91,7 @@ JOIN spots s ON s.name = v.spot_name
 JOIN logs l ON l.user_id = v.user_id AND l.spot_id = s.id
 WHERE NOT EXISTS (SELECT 1 FROM reviews WHERE reviews.log_id = l.id);
 
--- User 1 (the fake current user) follows Priya and Marcus but not Dana -
+-- Test User (id=1) follows Priya and Marcus but not Dana -
 -- gives "Trusted by friends" and friends-first sorting something to
 -- correctly include AND something to correctly exclude.
 INSERT INTO follows (follower_id, followed_id)

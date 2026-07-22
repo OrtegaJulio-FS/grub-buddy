@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
 const { resetDb, closeDb } = require('./db');
+const { agentAs } = require('./helpers');
 
 beforeEach(async () => {
   await resetDb();
@@ -101,6 +102,19 @@ describe('bad credentials', () => {
       .send({ email: 'doesnotexist@example.com', password: 'whatever123' });
 
     expect(res.status).toBe(401);
+  });
+});
+
+describe('protected routes require a session', () => {
+  test('GET /spots without a cookie returns 401', async () => {
+    const res = await request(app).get('/spots');
+    expect(res.status).toBe(401);
+  });
+
+  test('GET /spots with a valid session succeeds', async () => {
+    const agent = agentAs(app, { id: 1, email: 'test@grubbuds.dev' });
+    const res = await agent.get('/spots');
+    expect(res.status).toBe(200);
   });
 });
 

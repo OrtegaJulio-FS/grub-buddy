@@ -1,10 +1,13 @@
-const request = require('supertest');
 const app = require('../src/app');
 const reviewModel = require('../src/models/review.model');
 const { pool, resetDb, closeDb, FAKE_USER_ID } = require('./db');
+const { agentAs } = require('./helpers');
+
+let agent;
 
 beforeEach(async () => {
   await resetDb();
+  agent = agentAs(app, { id: FAKE_USER_ID, email: 'test@grubbuds.dev' });
 });
 
 afterAll(async () => {
@@ -23,7 +26,7 @@ describe('POST /reviews with spotId (no existing log)', () => {
   test('creates both the log and the review, and updates the spot aggregate', async () => {
     const spotId = await seedSpot();
 
-    const res = await request(app)
+    const res = await agent
       .post('/reviews')
       .send({ spotId, rating: 5, body: 'Transactional review test', tags: ['Cozy'] });
 
@@ -34,14 +37,14 @@ describe('POST /reviews with spotId (no existing log)', () => {
     const { rows } = await pool.query('SELECT COUNT(*) FROM logs WHERE spot_id = $1', [spotId]);
     expect(Number(rows[0].count)).toBe(1);
 
-    const spotRes = await request(app).get(`/spots/${spotId}`);
+    const spotRes = await agent.get(`/spots/${spotId}`);
     expect(spotRes.body.log_count).toBe(1);
     expect(spotRes.body.average_rating).toBe(5);
   });
 
   test('rejects a missing rating with 400, not a 500', async () => {
     const spotId = await seedSpot();
-    const res = await request(app).post('/reviews').send({ spotId, body: 'no rating given' });
+    const res = await agent.post('/reviews').send({ spotId, body: 'no rating given' });
     expect(res.status).toBe(400);
   });
 });

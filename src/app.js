@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 
-const fakeUser = require('./middleware/fakeUser');
+const requireAuth = require('./middleware/auth');
 const usersRoutes = require('./routes/users.routes');
 const spotsRoutes = require('./routes/spots.routes');
 const logsRoutes = require('./routes/logs.routes');
@@ -44,25 +44,22 @@ app.use(cookieParser());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-// Real JWT signup/login. Kept independent of the fakeUser-gated routes below
-// so the two can be developed and tested on separate tracks.
+// Real JWT signup/login/logout/me.
 app.use('/auth', authRoutes);
 
-// Core loop routes - no real auth yet, every request is treated as the same
-// hardcoded user (see middleware/fakeUser.js). Swap `fakeUser` for
-// `middleware/auth.js`'s requireAuth once you're ready to require real
-// logins - that swap only changes who req.user is. It does not add
-// authorization by itself; the ownership checks that decide who's allowed
-// to edit/delete a given resource live in the controllers (src/utils/ownership.js)
-// and already read req.user.id, so they keep working unchanged either way.
-app.use('/users', fakeUser, usersRoutes);
-app.use('/spots', fakeUser, spotsRoutes);
-app.use('/logs', fakeUser, logsRoutes);
-app.use('/reviews', fakeUser, reviewsRoutes);
-app.use('/follows', fakeUser, followsRoutes);
-app.use('/activity', fakeUser, activityRoutes);
-app.use('/lists', fakeUser, listsRoutes);
-app.use('/uploads', fakeUser, uploadsRoutes);
+// Every route below requires a real logged-in user (middleware/auth.js's
+// requireAuth populates req.user from the httpOnly cookie). Authorization
+// (does req.user.id actually own this log/review/list?) is a separate
+// concern that lives in the controllers themselves (src/utils/ownership.js
+// and its callers), which already read req.user.id.
+app.use('/users', requireAuth, usersRoutes);
+app.use('/spots', requireAuth, spotsRoutes);
+app.use('/logs', requireAuth, logsRoutes);
+app.use('/reviews', requireAuth, reviewsRoutes);
+app.use('/follows', requireAuth, followsRoutes);
+app.use('/activity', requireAuth, activityRoutes);
+app.use('/lists', requireAuth, listsRoutes);
+app.use('/uploads', requireAuth, uploadsRoutes);
 
 // 404 handler
 app.use((req, res) => {

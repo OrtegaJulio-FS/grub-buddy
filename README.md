@@ -24,12 +24,12 @@ tests/              # jest + supertest, against a real (separate) test database
   globalSetup.js    # creates + migrates the test database once per run
   setup-env.js      # loads .env.test before any test file's requires
   db.js             # resetDb() - truncate + reseed baseline users
+  helpers.js        # agentAs() - a supertest agent pre-authenticated as a given user
   *.test.js
 src/
   config/          # pg Pool, Cloudinary client
   middleware/
-    fakeUser.js    # hardcoded user, used by every route below for now
-    auth.js        # real JWT middleware (requireAuth) - not wired in yet
+    auth.js        # real JWT middleware (requireAuth), reads the httpOnly cookie
     upload.js       # multer (in-memory) for image uploads
   utils/
     ownership.js   # isOwnedBy() - shared ownership check for controllers
@@ -81,12 +81,24 @@ src/
    normal versioned migration (`npm run db:migrate:create -- some_name` to
    add one, `npm run db:migrate:down` to roll back the most recent one).
 
-5. **Seed the database** (fake user id=1, plus 3 more users with their own
+5. **Seed the database** (4 real, login-able users with their own
    logs/reviews/follows so social features have real data to show):
 
    ```bash
    node db/seed.js
    ```
+
+   All four seeded users share the password `password123`:
+
+   | Name       | Email                | Password      |
+   |------------|-----------------------|---------------|
+   | Test User  | test@grubbuds.dev     | password123   |
+   | Priya Nair | priya@grubbuds.dev    | password123   |
+   | Marcus Webb| marcus@grubbuds.dev   | password123   |
+   | Dana Osei  | dana@grubbuds.dev     | password123   |
+
+   Log in as any of them at `POST /auth/login` (or the frontend's Login page)
+   to test the app as that user.
 
 6. **(Optional) Enable image uploads** - see
    [Image uploads (Cloudinary)](#image-uploads-cloudinary) below. The API
@@ -127,9 +139,10 @@ validation rejections (bad ratings, non-numeric pagination params, future
 
 ## API overview
 
-Every route below (except `/auth`) is treated as the same hardcoded user
-(`id: 1`, see `src/middleware/fakeUser.js`) so the app can be built/tested
-end-to-end before wiring up real login.
+Every route below (except `/auth/signup`, `/auth/login`, and `/auth/logout`)
+requires a real logged-in user - `middleware/auth.js`'s `requireAuth` reads
+the JWT from an httpOnly cookie and populates `req.user`, returning `401` if
+it's missing or invalid.
 
 - **Users** - `GET/POST /users`, `GET/PUT/DELETE /users/:id`
 - **Spots** - `GET/POST /spots`, `GET/PUT/DELETE /spots/:id`
@@ -149,15 +162,19 @@ end-to-end before wiring up real login.
 `POST /logs` requires `spotId` and an integer `rating` 1-5; everything else
 across these routes follows the same required/optional split you'd expect.
 
-### Auth (separate track)
+### Auth
 
-- `POST /auth/signup` - `{ name, email, password }` → `{ token, user }`
-- `POST /auth/login` - `{ email, password }` → `{ token, user }`
+- `POST /auth/signup` - `{ name, email, password, bio?, avatarUrl?, city? }` →
+  `{ user }`, and sets the JWT as an httpOnly cookie
+- `POST /auth/login` - `{ email, password }` → `{ user }`, same cookie
+- `POST /auth/logout` - clears the cookie, `204`
+- `GET /auth/me` - requires the cookie, returns the current user (`401` if
+  not logged in) - used by the frontend on load to restore a session
 
-These issue real JWTs today but nothing currently *requires* them.
-`src/middleware/auth.js` exports `requireAuth`, ready to swap in for
-`fakeUser` in `src/app.js` once you want the routes above to require a real
-logged-in user.
+The JWT never appears in a response body or is readable by JS - it's
+`httpOnly`, `sameSite: lax`, and `secure` in production (see
+`src/utils/cookies.js`). The frontend must send `credentials: 'include'` on
+every request for the cookie to round-trip.
 
 ## Image uploads (Cloudinary)
 
@@ -215,10 +232,11 @@ above actually deploys anything by itself.
   just a date string and Postgres will coerce it.
 - **`follows` has no surrogate `id`** - `(follower_id, followed_id)` is the
   primary key, since that pair is already the natural unique constraint.
-- **`lists.is_public` has no visibility enforcement** - every request is still
-  the same fake user (no real auth), so there's no "someone else" to hide a
-  private list from yet. The column exists for the UI toggle and for when
-  real auth lands.
+- **`lists.is_public` has no visibility enforcement** - now that real
+  multi-user auth exists, a private list is still readable by anyone who
+  knows its id. The column drives the UI toggle only; add a check in
+  `lists.controller.js` if private lists need to actually be hidden from
+  non-owners.
 - **`GET /spots/trending` still returns all-time `average_rating`/`log_count`**
   for display consistency with every other spot listing - only the ranking
   (`recent_log_count`, last 7 days) is time-boxed.
