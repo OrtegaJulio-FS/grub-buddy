@@ -7,6 +7,7 @@ import { ListPage } from './pages/ListPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Footer } from './components/layout/Footer';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           }
         />
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }
