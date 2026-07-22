@@ -17,7 +17,11 @@ export function FeedPage() {
   const [search, setSearch] = useState('');
   const [minRating, setMinRating] = useState(undefined);
   const [activePill, setActivePill] = useState(null);
-  const [searchTab, setSearchTab] = useState('location');
+  // Defaults to the free-text "search" segment, not "location" - the visible
+  // search box is the primary way users look for a spot by name, and
+  // "location" does an exact-match against city (not a fuzzy search), so
+  // defaulting there made typing a spot name silently return zero results.
+  const [searchTab, setSearchTab] = useState('search');
   const [viewMode, setViewMode] = useState('grid');
 
   const category = activePill && activePill !== 'trending' ? activePill : '';
@@ -54,6 +58,17 @@ export function FeedPage() {
     setActivePill((current) => (current === key ? null : key));
   }
 
+  // Switching segments doesn't clear the other segments' typed text, so a
+  // stale value (e.g. a leftover `search` term after switching to Location)
+  // would silently AND-combine with the new one and zero out results. Only
+  // clear city/search here, not category/activePill - that one's
+  // intentionally shared with the always-visible FilterPills row.
+  function handleSearchTabChange(tab) {
+    setSearchTab(tab);
+    if (tab !== 'location') setCity('');
+    if (tab !== 'search') setSearch('');
+  }
+
   const loading = spotsLoading || logsLoading || (activePill === 'trending' && trendingLoading);
 
   return (
@@ -61,7 +76,7 @@ export function FeedPage() {
       <NavBar>
         <SegmentedSearchBar
           active={searchTab}
-          onActiveChange={setSearchTab}
+          onActiveChange={handleSearchTabChange}
           city={city}
           category={activePill && activePill !== 'trending' ? activePill : ''}
           search={search}
